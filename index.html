@@ -1,1 +1,684 @@
-<!-- test -->
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>ATX Corrective Action Form</title>
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; background: #f0f2f5; color: #1a1a2e; min-height: 100vh; }
+
+    .header {
+      background: #0f1923;
+      color: white;
+      padding: 18px 40px;
+      display: flex;
+      align-items: center;
+      gap: 16px;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.3);
+    }
+    .header .logo {
+      font-size: 22px;
+      font-weight: 900;
+      color: #4f9cf9;
+      letter-spacing: -0.5px;
+    }
+    .header-divider { width: 1px; height: 28px; background: rgba(255,255,255,0.2); }
+    .header h1 { font-size: 16px; font-weight: 600; color: rgba(255,255,255,0.9); }
+
+    #task-banner { padding: 0 40px; }
+
+    .task-linked {
+      background: #e8f4ff;
+      border-left: 4px solid #4f9cf9;
+      margin-top: 20px;
+      padding: 12px 16px;
+      border-radius: 6px;
+      font-size: 14px;
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+    .task-linked .label {
+      font-size: 11px;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      color: #4f9cf9;
+      white-space: nowrap;
+    }
+    .task-linked .name { font-weight: 600; color: #1a1a2e; }
+    .task-linked a { color: #4f9cf9; text-decoration: none; font-size: 13px; margin-left: auto; white-space: nowrap; }
+    .task-linked a:hover { text-decoration: underline; }
+
+    .task-warning {
+      background: #fff8e1;
+      border-left: 4px solid #ffc107;
+      margin-top: 20px;
+      padding: 12px 16px;
+      border-radius: 6px;
+      font-size: 14px;
+      color: #5d4e00;
+    }
+
+    .form-container { max-width: 860px; margin: 24px auto 60px; padding: 0 20px; }
+
+    .alert { padding: 16px 20px; border-radius: 8px; margin-bottom: 20px; font-size: 14px; font-weight: 500; display: none; }
+    .alert-success { background: #d4f5e2; border: 1px solid #a8e6c1; color: #1a5c35; }
+    .alert-error { background: #fde8e8; border: 1px solid #f5c2c2; color: #7a1a1a; }
+
+    .section {
+      background: white;
+      border-radius: 10px;
+      padding: 28px 32px;
+      margin-bottom: 16px;
+      box-shadow: 0 1px 4px rgba(0,0,0,0.07);
+    }
+    .section-header {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      margin-bottom: 24px;
+      padding-bottom: 14px;
+      border-bottom: 2px solid #f0f2f5;
+    }
+    .section-num {
+      background: #4f9cf9;
+      color: white;
+      font-size: 12px;
+      font-weight: 700;
+      width: 26px;
+      height: 26px;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      flex-shrink: 0;
+    }
+    .section-title { font-size: 14px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.5px; color: #1a1a2e; }
+
+    .row { display: flex; gap: 16px; margin-bottom: 16px; }
+    .row .field { flex: 1; }
+    .row .field.narrow { flex: 0 0 140px; }
+    .row .field.medium { flex: 0 0 200px; }
+
+    .field { margin-bottom: 16px; }
+    .field:last-child { margin-bottom: 0; }
+    .field label {
+      display: block;
+      font-size: 11px;
+      font-weight: 700;
+      color: #6b7280;
+      text-transform: uppercase;
+      letter-spacing: 0.4px;
+      margin-bottom: 6px;
+    }
+    .field label .note { font-weight: 400; color: #9ca3af; text-transform: none; letter-spacing: 0; font-size: 11px; }
+    .field input[type="text"],
+    .field input[type="date"],
+    .field textarea,
+    .field select {
+      width: 100%;
+      padding: 10px 12px;
+      border: 1.5px solid #e5e7eb;
+      border-radius: 7px;
+      font-size: 14px;
+      font-family: inherit;
+      color: #1a1a2e;
+      background: #fafafa;
+      transition: border-color 0.15s, background 0.15s;
+      -webkit-appearance: none;
+    }
+    .field input:focus, .field textarea:focus, .field select:focus {
+      outline: none;
+      border-color: #4f9cf9;
+      background: white;
+      box-shadow: 0 0 0 3px rgba(79,156,249,0.1);
+    }
+    .field textarea { min-height: 90px; resize: vertical; line-height: 1.5; }
+    .field select { background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 12 12'%3E%3Cpath fill='%236b7280' d='M6 8L1 3h10z'/%3E%3C/svg%3E"); background-repeat: no-repeat; background-position: right 12px center; padding-right: 32px; }
+
+    .check-group, .radio-group { display: flex; flex-wrap: wrap; gap: 8px 16px; margin-top: 2px; }
+    .check-item, .radio-item {
+      display: flex;
+      align-items: center;
+      gap: 7px;
+      font-size: 13.5px;
+      color: #374151;
+      cursor: pointer;
+      padding: 5px 10px;
+      border-radius: 6px;
+      border: 1.5px solid #e5e7eb;
+      background: #fafafa;
+      transition: all 0.15s;
+      user-select: none;
+    }
+    .check-item:hover, .radio-item:hover { border-color: #4f9cf9; background: #f0f7ff; }
+    .check-item input, .radio-item input { accent-color: #4f9cf9; width: 15px; height: 15px; cursor: pointer; }
+    .other-input {
+      display: inline-block;
+      width: 140px;
+      padding: 3px 8px;
+      border: 1px solid #d1d5db;
+      border-radius: 5px;
+      font-size: 13px;
+      font-family: inherit;
+      margin-left: 4px;
+    }
+    .other-input:focus { outline: none; border-color: #4f9cf9; }
+
+    /* Action table */
+    .action-table { width: 100%; border-collapse: collapse; margin-top: 8px; border-radius: 8px; overflow: hidden; border: 1.5px solid #e5e7eb; }
+    .action-table th {
+      background: #f8f9fa;
+      font-size: 11px;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.4px;
+      color: #6b7280;
+      padding: 10px 12px;
+      text-align: left;
+      border-bottom: 1.5px solid #e5e7eb;
+    }
+    .action-table td { border-bottom: 1px solid #f0f2f5; padding: 0; }
+    .action-table tr:last-child td { border-bottom: none; }
+    .action-table td.num {
+      width: 44px;
+      text-align: center;
+      font-size: 13px;
+      font-weight: 600;
+      color: #9ca3af;
+      background: #fafafa;
+      border-right: 1px solid #f0f2f5;
+    }
+    .action-table td input {
+      width: 100%;
+      padding: 10px 12px;
+      border: none;
+      font-size: 13.5px;
+      font-family: inherit;
+      color: #1a1a2e;
+      background: transparent;
+    }
+    .action-table td input:focus { outline: none; background: #f0f7ff; }
+    .action-table td.owner-col { width: 170px; border-left: 1px solid #f0f2f5; }
+    .action-table td.due-col { width: 160px; border-left: 1px solid #f0f2f5; }
+
+    .two-col { display: grid; grid-template-columns: 1fr 1fr; gap: 24px; margin-top: 20px; }
+
+    .submit-area { display: flex; justify-content: flex-end; margin-top: 24px; gap: 12px; align-items: center; }
+    .submit-note { font-size: 12px; color: #9ca3af; }
+    .btn-submit {
+      background: #4f9cf9;
+      color: white;
+      border: none;
+      padding: 13px 36px;
+      border-radius: 8px;
+      font-size: 15px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: background 0.15s, transform 0.1s;
+      letter-spacing: 0.2px;
+    }
+    .btn-submit:hover { background: #3a87e8; }
+    .btn-submit:active { transform: scale(0.98); }
+    .btn-submit:disabled { background: #b0d4fb; cursor: not-allowed; transform: none; }
+
+    .success-screen {
+      display: none;
+      background: white;
+      border-radius: 10px;
+      padding: 60px 40px;
+      text-align: center;
+      box-shadow: 0 1px 4px rgba(0,0,0,0.07);
+    }
+    .success-screen .icon { font-size: 56px; margin-bottom: 16px; }
+    .success-screen h2 { font-size: 24px; font-weight: 700; color: #1a1a2e; margin-bottom: 8px; }
+    .success-screen p { font-size: 15px; color: #6b7280; margin-bottom: 24px; }
+    .success-screen a {
+      display: inline-block;
+      background: #4f9cf9;
+      color: white;
+      text-decoration: none;
+      padding: 10px 24px;
+      border-radius: 7px;
+      font-size: 14px;
+      font-weight: 600;
+    }
+
+    @media (max-width: 640px) {
+      .header { padding: 14px 20px; }
+      #task-banner { padding: 0 16px; }
+      .form-container { padding: 0 12px; }
+      .section { padding: 20px 16px; }
+      .row { flex-direction: column; gap: 0; }
+      .two-col { grid-template-columns: 1fr; }
+    }
+  </style>
+</head>
+<body>
+
+  <div class="header">
+    <div class="logo">ATX</div>
+    <div class="header-divider"></div>
+    <h1>Corrective Action Form</h1>
+  </div>
+
+  <div id="task-banner"></div>
+
+  <div class="form-container">
+    <div id="alert-success" class="alert alert-success"></div>
+    <div id="alert-error" class="alert alert-error"></div>
+
+    <!-- SUCCESS SCREEN -->
+    <div class="success-screen" id="success-screen">
+      <div class="icon">✅</div>
+      <h2>Corrective Action Submitted</h2>
+      <p>This form has been saved as a comment on the linked ClickUp error task.</p>
+      <a id="clickup-link" href="#" target="_blank">View Task in ClickUp ↗</a>
+    </div>
+
+    <!-- FORM -->
+    <form id="ca-form">
+
+      <!-- ── SECTION 1 ───────────────────────────────────────── -->
+      <div class="section">
+        <div class="section-header">
+          <div class="section-num">1</div>
+          <div class="section-title">Error Details</div>
+        </div>
+
+        <div class="row">
+          <div class="field narrow">
+            <label>Date</label>
+            <input type="date" id="f-date" required>
+          </div>
+          <div class="field narrow">
+            <label>Facility</label>
+            <select id="f-facility" required>
+              <option value="">Select...</option>
+              <option value="MKE">MKE</option>
+              <option value="SLC">SLC</option>
+              <option value="BAL">BAL</option>
+            </select>
+          </div>
+          <div class="field narrow">
+            <label>Shift</label>
+            <select id="f-shift" required>
+              <option value="">Select...</option>
+              <option value="AM">AM</option>
+              <option value="PM">PM</option>
+            </select>
+          </div>
+        </div>
+
+        <div class="row">
+          <div class="field">
+            <label>Reported By</label>
+            <input type="text" id="f-reported-by" placeholder="Your name" required>
+          </div>
+          <div class="field">
+            <label>Department</label>
+            <select id="f-dept" required>
+              <option value="">Select...</option>
+              <option value="Inbound">Inbound</option>
+              <option value="Outbound">Outbound</option>
+              <option value="Kitting">Kitting</option>
+              <option value="Inventory">Inventory</option>
+              <option value="B2B">B2B</option>
+              <option value="Returns">Returns</option>
+            </select>
+          </div>
+        </div>
+
+        <div class="row">
+          <div class="field">
+            <label>Employee Who Caused Error <span class="note">— leave blank if unknown at time of filing</span></label>
+            <input type="text" id="f-employee" placeholder="Name (optional)">
+          </div>
+          <div class="field">
+            <label>Client</label>
+            <input type="text" id="f-client" placeholder="Client name" required>
+          </div>
+        </div>
+
+        <div class="row">
+          <div class="field">
+            <label>Order #</label>
+            <input type="text" id="f-order" placeholder="Order number">
+          </div>
+          <div class="field">
+            <label>SKU / Item</label>
+            <input type="text" id="f-sku" placeholder="SKU or item description">
+          </div>
+        </div>
+
+        <div class="field">
+          <label>Error Type</label>
+          <div class="check-group">
+            <label class="check-item"><input type="checkbox" name="error-type" value="Mispick"> Mispick</label>
+            <label class="check-item"><input type="checkbox" name="error-type" value="Wrong Item"> Wrong Item</label>
+            <label class="check-item"><input type="checkbox" name="error-type" value="Packout Error"> Packout Error</label>
+            <label class="check-item"><input type="checkbox" name="error-type" value="Wrong Qty"> Wrong Qty</label>
+            <label class="check-item"><input type="checkbox" name="error-type" value="Wrong Label"> Wrong Label</label>
+            <label class="check-item"><input type="checkbox" name="error-type" value="Damaged Goods"> Damaged Goods</label>
+            <label class="check-item"><input type="checkbox" name="error-type" value="LOT / FEFO"> LOT / FEFO</label>
+            <label class="check-item"><input type="checkbox" name="error-type" value="Receiving Error"> Receiving Error</label>
+            <label class="check-item"><input type="checkbox" name="error-type" value="Inventory Count"> Inventory Count</label>
+            <label class="check-item"><input type="checkbox" name="error-type" value="Kit Build Error"> Kit Build Error</label>
+            <label class="check-item"><input type="checkbox" name="error-type" value="Carrier / Shipping"> Carrier / Shipping</label>
+            <label class="check-item"><input type="checkbox" name="error-type" value="Other"> Other: <input class="other-input" type="text" id="f-error-type-other" placeholder="specify"></label>
+          </div>
+        </div>
+
+        <div class="field" style="margin-top:16px">
+          <label>How Discovered</label>
+          <div class="radio-group">
+            <label class="radio-item"><input type="radio" name="how-discovered" value="Client Report"> Client Report</label>
+            <label class="radio-item"><input type="radio" name="how-discovered" value="Internal Catch"> Internal Catch</label>
+            <label class="radio-item"><input type="radio" name="how-discovered" value="End Customer"> End Customer</label>
+            <label class="radio-item"><input type="radio" name="how-discovered" value="Carrier"> Carrier</label>
+            <label class="radio-item"><input type="radio" name="how-discovered" value="Manager Review"> Manager Review</label>
+          </div>
+        </div>
+
+        <div class="field" style="margin-top:16px">
+          <label>Description of Error <span class="note">— what happened? what was expected vs. what actually occurred?</span></label>
+          <textarea id="f-error-desc" placeholder="Describe the error in detail..." required></textarea>
+        </div>
+      </div>
+
+      <!-- ── SECTION 2 ───────────────────────────────────────── -->
+      <div class="section">
+        <div class="section-header">
+          <div class="section-num">2</div>
+          <div class="section-title">Root Cause</div>
+        </div>
+
+        <div class="field">
+          <label>Root Cause Category</label>
+          <div class="check-group">
+            <label class="check-item"><input type="checkbox" name="root-cause" value="Process / SOP Gap"> Process / SOP Gap</label>
+            <label class="check-item"><input type="checkbox" name="root-cause" value="Training / Knowledge"> Training / Knowledge</label>
+            <label class="check-item"><input type="checkbox" name="root-cause" value="System / WMS"> System / WMS</label>
+            <label class="check-item"><input type="checkbox" name="root-cause" value="Labeling / Slotting"> Labeling / Slotting</label>
+            <label class="check-item"><input type="checkbox" name="root-cause" value="Staffing / Attention"> Staffing / Attention</label>
+            <label class="check-item"><input type="checkbox" name="root-cause" value="Other"> Other: <input class="other-input" type="text" id="f-root-other" placeholder="specify"></label>
+          </div>
+        </div>
+
+        <div class="field" style="margin-top:16px">
+          <label>Root Cause Explanation <span class="note">— explain in plain language why this error occurred</span></label>
+          <textarea id="f-root-exp" placeholder="Explain the root cause..." required></textarea>
+        </div>
+      </div>
+
+      <!-- ── SECTION 3 ───────────────────────────────────────── -->
+      <div class="section">
+        <div class="section-header">
+          <div class="section-num">3</div>
+          <div class="section-title">Corrective Actions</div>
+        </div>
+        <p style="font-size:13px;color:#6b7280;margin-bottom:14px">List all actions to fix the issue and prevent it from happening again.</p>
+
+        <table class="action-table">
+          <thead>
+            <tr>
+              <th style="width:44px">#</th>
+              <th>Action Step</th>
+              <th class="owner-col">Owner</th>
+              <th class="due-col">Due Date / Status</th>
+            </tr>
+          </thead>
+          <tbody id="action-rows">
+            <tr>
+              <td class="num">1</td>
+              <td><input type="text" data-row="1" data-field="step" placeholder="Describe the action..."></td>
+              <td class="owner-col"><input type="text" data-row="1" data-field="owner" placeholder="Name"></td>
+              <td class="due-col"><input type="text" data-row="1" data-field="due" placeholder="e.g. 04/15 / Open"></td>
+            </tr>
+            <tr>
+              <td class="num">2</td>
+              <td><input type="text" data-row="2" data-field="step" placeholder="Describe the action..."></td>
+              <td class="owner-col"><input type="text" data-row="2" data-field="owner" placeholder="Name"></td>
+              <td class="due-col"><input type="text" data-row="2" data-field="due" placeholder="e.g. 04/15 / Open"></td>
+            </tr>
+            <tr>
+              <td class="num">3</td>
+              <td><input type="text" data-row="3" data-field="step" placeholder="Describe the action..."></td>
+              <td class="owner-col"><input type="text" data-row="3" data-field="owner" placeholder="Name"></td>
+              <td class="due-col"><input type="text" data-row="3" data-field="due" placeholder="e.g. 04/15 / Open"></td>
+            </tr>
+            <tr>
+              <td class="num">4</td>
+              <td><input type="text" data-row="4" data-field="step" placeholder="Describe the action..."></td>
+              <td class="owner-col"><input type="text" data-row="4" data-field="owner" placeholder="Name"></td>
+              <td class="due-col"><input type="text" data-row="4" data-field="due" placeholder="e.g. 04/15 / Open"></td>
+            </tr>
+          </tbody>
+        </table>
+
+        <div class="two-col">
+          <div class="field">
+            <label>SOP Update Required?</label>
+            <div class="radio-group" style="margin-bottom:10px">
+              <label class="radio-item"><input type="radio" name="sop-update" value="Yes"> Yes</label>
+              <label class="radio-item"><input type="radio" name="sop-update" value="No"> No</label>
+            </div>
+            <input type="text" id="f-sop-name" placeholder="SOP name (if Yes)">
+          </div>
+          <div class="field">
+            <label>Retraining Required?</label>
+            <div class="radio-group">
+              <label class="radio-item"><input type="radio" name="retraining" value="Yes"> Yes</label>
+              <label class="radio-item"><input type="radio" name="retraining" value="No"> No</label>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ── SECTION 4 ───────────────────────────────────────── -->
+      <div class="section">
+        <div class="section-header">
+          <div class="section-num">4</div>
+          <div class="section-title">Acknowledgment</div>
+        </div>
+        <p style="font-size:13px;color:#6b7280;margin-bottom:18px">All parties acknowledge the error has been reviewed and corrective actions are understood.</p>
+
+        <div class="row">
+          <div class="field">
+            <label>Employee Name (Print)</label>
+            <input type="text" id="f-emp-name" placeholder="Print name">
+          </div>
+          <div class="field">
+            <label>Department Manager (Print) <span class="note">— required</span></label>
+            <input type="text" id="f-mgr-name" placeholder="Print name" required>
+          </div>
+        </div>
+        <div class="row">
+          <div class="field medium">
+            <label>Acknowledgment Date</label>
+            <input type="date" id="f-ack-date">
+          </div>
+          <div class="field">
+            <label>Manager Title</label>
+            <input type="text" id="f-mgr-title" placeholder="e.g. Operations Manager">
+          </div>
+        </div>
+      </div>
+
+      <div class="submit-area">
+        <span class="submit-note">This form will be saved as a comment on the linked ClickUp error task.</span>
+        <button type="submit" class="btn-submit" id="submit-btn">Submit Corrective Action →</button>
+      </div>
+
+    </form>
+  </div>
+
+  <script>
+    // ============================================================
+    //  CONFIGURATION
+    //  Replace with your ClickUp Personal API Token before deploying
+    //  Get yours at: https://app.clickup.com/settings/apps
+    // ============================================================
+    const CLICKUP_API_TOKEN = 'YOUR_CLICKUP_API_TOKEN_HERE';
+    // ============================================================
+
+    // ── Read URL params ─────────────────────────────────────────
+    const params = new URLSearchParams(window.location.search);
+    const taskId   = params.get('task_id');
+    const taskName = params.get('task_name') ? decodeURIComponent(params.get('task_name')) : null;
+
+    // ── Task banner ─────────────────────────────────────────────
+    const banner = document.getElementById('task-banner');
+    if (taskId) {
+      banner.innerHTML = `
+        <div class="task-linked">
+          <span class="label">Linked Error</span>
+          <span class="name">${taskName || taskId}</span>
+          <a href="https://app.clickup.com/t/${taskId}" target="_blank">View in ClickUp ↗</a>
+        </div>`;
+      document.getElementById('clickup-link').href = `https://app.clickup.com/t/${taskId}`;
+    } else {
+      banner.innerHTML = `
+        <div class="task-warning">
+          ⚠️ <strong>No error task linked.</strong> Please use the "Fill out corrective action" link from your Slack notification to ensure this form saves to the correct task.
+        </div>`;
+    }
+
+    // ── Set default dates ───────────────────────────────────────
+    const today = new Date().toISOString().split('T')[0];
+    document.getElementById('f-date').value = today;
+    document.getElementById('f-ack-date').value = today;
+
+    // ── Form submit ─────────────────────────────────────────────
+    document.getElementById('ca-form').addEventListener('submit', async function(e) {
+      e.preventDefault();
+
+      const btn = document.getElementById('submit-btn');
+      btn.disabled = true;
+      btn.textContent = 'Submitting…';
+      hideAlerts();
+
+      // Collect checkboxes / radios
+      const errorTypes = [...document.querySelectorAll('input[name="error-type"]:checked')]
+        .map(c => c.value === 'Other' ? `Other: ${document.getElementById('f-error-type-other').value}` : c.value);
+
+      const rootCauses = [...document.querySelectorAll('input[name="root-cause"]:checked')]
+        .map(c => c.value === 'Other' ? `Other: ${document.getElementById('f-root-other').value}` : c.value);
+
+      const howDisc  = document.querySelector('input[name="how-discovered"]:checked')?.value || '—';
+      const sopUpd   = document.querySelector('input[name="sop-update"]:checked')?.value || '—';
+      const retrain  = document.querySelector('input[name="retraining"]:checked')?.value || '—';
+
+      // Collect action steps
+      const actionRows = [];
+      for (let i = 1; i <= 4; i++) {
+        const step  = document.querySelector(`input[data-row="${i}"][data-field="step"]`).value.trim();
+        if (!step) continue;
+        const owner = document.querySelector(`input[data-row="${i}"][data-field="owner"]`).value.trim() || 'TBD';
+        const due   = document.querySelector(`input[data-row="${i}"][data-field="due"]`).value.trim()   || 'TBD';
+        actionRows.push(`${i}. ${step} | Owner: ${owner} | Due/Status: ${due}`);
+      }
+
+      // Build formatted comment
+      const sopLine = sopUpd === 'Yes'
+        ? `Yes — ${document.getElementById('f-sop-name').value || 'SOP name TBD'}`
+        : sopUpd;
+
+      const comment = [
+        `📋 **CORRECTIVE ACTION REPORT**`,
+        ``,
+        `━━━━━━━━━━━━━━━━━━━━━━━━`,
+        `**SECTION 1 — ERROR DETAILS**`,
+        `• **Date:** ${document.getElementById('f-date').value}`,
+        `• **Facility:** ${document.getElementById('f-facility').value}`,
+        `• **Shift:** ${document.getElementById('f-shift').value}`,
+        `• **Reported By:** ${document.getElementById('f-reported-by').value}`,
+        `• **Department:** ${document.getElementById('f-dept').value}`,
+        `• **Employee (Caused Error):** ${document.getElementById('f-employee').value || 'Unknown at time of filing'}`,
+        `• **Client:** ${document.getElementById('f-client').value}`,
+        `• **Order #:** ${document.getElementById('f-order').value || 'N/A'}`,
+        `• **SKU / Item:** ${document.getElementById('f-sku').value || 'N/A'}`,
+        `• **Error Type:** ${errorTypes.length ? errorTypes.join(', ') : '—'}`,
+        `• **How Discovered:** ${howDisc}`,
+        ``,
+        `**Description of Error:**`,
+        document.getElementById('f-error-desc').value,
+        ``,
+        `━━━━━━━━━━━━━━━━━━━━━━━━`,
+        `**SECTION 2 — ROOT CAUSE**`,
+        `• **Category:** ${rootCauses.length ? rootCauses.join(', ') : '—'}`,
+        ``,
+        `**Root Cause Explanation:**`,
+        document.getElementById('f-root-exp').value,
+        ``,
+        `━━━━━━━━━━━━━━━━━━━━━━━━`,
+        `**SECTION 3 — CORRECTIVE ACTIONS**`,
+        actionRows.length ? actionRows.join('\n') : 'No action steps entered',
+        ``,
+        `• **SOP Update Required:** ${sopLine}`,
+        `• **Retraining Required:** ${retrain}`,
+        ``,
+        `━━━━━━━━━━━━━━━━━━━━━━━━`,
+        `**SECTION 4 — ACKNOWLEDGMENT**`,
+        `• **Employee (Print):** ${document.getElementById('f-emp-name').value || 'N/A'}`,
+        `• **Department Manager:** ${document.getElementById('f-mgr-name').value}`,
+        `• **Manager Title:** ${document.getElementById('f-mgr-title').value || 'N/A'}`,
+        `• **Date:** ${document.getElementById('f-ack-date').value}`,
+        ``,
+        `_Submitted electronically via ATX Corrective Action Form_`
+      ].join('\n');
+
+      if (!taskId) {
+        showError('No ClickUp task linked. Please use the "Fill out corrective action" link from your Slack notification.');
+        btn.disabled = false;
+        btn.textContent = 'Submit Corrective Action →';
+        return;
+      }
+
+      if (CLICKUP_API_TOKEN === 'YOUR_CLICKUP_API_TOKEN_HERE') {
+        showError('Setup required: A ClickUp API token has not been configured. Contact your Operations Lead.');
+        btn.disabled = false;
+        btn.textContent = 'Submit Corrective Action →';
+        return;
+      }
+
+      try {
+        const resp = await fetch(`https://api.clickup.com/api/v2/task/${taskId}/comment`, {
+          method: 'POST',
+          headers: {
+            'Authorization': CLICKUP_API_TOKEN,
+            'Content-Type': 'application/json'
+          },
+          body: JSON.stringify({ comment_text: comment })
+        });
+
+        if (resp.ok) {
+          document.getElementById('ca-form').style.display = 'none';
+          document.getElementById('success-screen').style.display = 'block';
+          window.scrollTo({ top: 0, behavior: 'smooth' });
+        } else {
+          const err = await resp.json().catch(() => ({}));
+          throw new Error(err.err || `HTTP ${resp.status}`);
+        }
+      } catch (err) {
+        showError(`Submission failed: ${err.message}. Please contact your Operations Lead or try again.`);
+        btn.disabled = false;
+        btn.textContent = 'Submit Corrective Action →';
+      }
+    });
+
+    function showError(msg) {
+      const el = document.getElementById('alert-error');
+      el.textContent = '❌ ' + msg;
+      el.style.display = 'block';
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+    }
+    function hideAlerts() {
+      document.getElementById('alert-success').style.display = 'none';
+      document.getElementById('alert-error').style.display = 'none';
+    }
+  </script>
+</body>
+</html>

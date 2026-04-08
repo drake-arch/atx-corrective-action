@@ -1,0 +1,584 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>ATX Error Trend Analysis</title>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; background: #f0f2f5; color: #1a1a2e; }
+
+    .header {
+      background: #0f1923;
+      color: white;
+      padding: 18px 40px;
+      display: flex;
+      align-items: center;
+      gap: 16px;
+    }
+    .logo { font-size: 22px; font-weight: 900; color: #4f9cf9; }
+    .header-div { width: 1px; height: 28px; background: rgba(255,255,255,0.2); }
+    .header h1 { font-size: 16px; font-weight: 600; color: rgba(255,255,255,0.9); }
+    .header .date-badge { margin-left: auto; background: rgba(255,255,255,0.1); padding: 5px 12px; border-radius: 20px; font-size: 12px; color: rgba(255,255,255,0.7); }
+
+    .config-bar {
+      background: white;
+      border-bottom: 1px solid #e5e7eb;
+      padding: 14px 40px;
+      display: flex;
+      align-items: center;
+      gap: 16px;
+      flex-wrap: wrap;
+    }
+    .config-bar label { font-size: 12px; font-weight: 700; color: #6b7280; text-transform: uppercase; letter-spacing: 0.4px; }
+    .config-bar input[type="text"], .config-bar input[type="number"], .config-bar select {
+      padding: 7px 12px;
+      border: 1.5px solid #e5e7eb;
+      border-radius: 6px;
+      font-size: 13px;
+      color: #1a1a2e;
+      background: #fafafa;
+      font-family: inherit;
+    }
+    .config-bar input[type="text"]:focus, .config-bar input[type="number"]:focus, .config-bar select:focus {
+      outline: none;
+      border-color: #4f9cf9;
+    }
+    .config-bar input#token-input { width: 300px; font-family: monospace; }
+    .btn-run {
+      background: #4f9cf9;
+      color: white;
+      border: none;
+      padding: 8px 22px;
+      border-radius: 6px;
+      font-size: 13px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: background 0.15s;
+    }
+    .btn-run:hover { background: #3a87e8; }
+    .btn-run:disabled { background: #b0d4fb; cursor: not-allowed; }
+    .config-sep { width: 1px; height: 28px; background: #e5e7eb; }
+
+    .container { max-width: 1200px; margin: 28px auto; padding: 0 24px 60px; }
+
+    .status-bar {
+      background: white;
+      border-radius: 8px;
+      padding: 14px 20px;
+      margin-bottom: 20px;
+      font-size: 13px;
+      color: #6b7280;
+      border: 1.5px solid #e5e7eb;
+      display: none;
+    }
+    .status-bar.loading { color: #4f9cf9; border-color: #4f9cf9; }
+    .status-bar.error { color: #dc2626; border-color: #fca5a5; background: #fef2f2; }
+
+    /* KPI cards */
+    .kpi-row { display: grid; grid-template-columns: repeat(5, 1fr); gap: 14px; margin-bottom: 20px; }
+    .kpi {
+      background: white;
+      border-radius: 10px;
+      padding: 18px 20px;
+      box-shadow: 0 1px 3px rgba(0,0,0,0.06);
+    }
+    .kpi .kpi-label { font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.4px; color: #9ca3af; margin-bottom: 6px; }
+    .kpi .kpi-val { font-size: 28px; font-weight: 800; color: #1a1a2e; line-height: 1; }
+    .kpi .kpi-sub { font-size: 12px; color: #9ca3af; margin-top: 4px; }
+    .kpi.highlight .kpi-val { color: #4f9cf9; }
+    .kpi.warn .kpi-val { color: #f59e0b; }
+    .kpi.good .kpi-val { color: #10b981; }
+    .kpi.danger .kpi-val { color: #ef4444; }
+
+    .charts-row { display: grid; grid-template-columns: 2fr 1fr; gap: 16px; margin-bottom: 16px; }
+    .chart-card {
+      background: white;
+      border-radius: 10px;
+      padding: 20px 24px;
+      box-shadow: 0 1px 3px rgba(0,0,0,0.06);
+    }
+    .chart-card h3 { font-size: 13px; font-weight: 700; color: #374151; margin-bottom: 16px; text-transform: uppercase; letter-spacing: 0.3px; }
+
+    .table-card {
+      background: white;
+      border-radius: 10px;
+      padding: 20px 24px;
+      box-shadow: 0 1px 3px rgba(0,0,0,0.06);
+      margin-bottom: 16px;
+    }
+    .table-card h3 { font-size: 13px; font-weight: 700; color: #374151; margin-bottom: 14px; text-transform: uppercase; letter-spacing: 0.3px; }
+
+    table { width: 100%; border-collapse: collapse; font-size: 13px; }
+    th {
+      background: #f8f9fa;
+      padding: 10px 12px;
+      text-align: left;
+      font-size: 11px;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.4px;
+      color: #6b7280;
+      border-bottom: 1.5px solid #e5e7eb;
+    }
+    td { padding: 10px 12px; border-bottom: 1px solid #f3f4f6; color: #374151; }
+    tr:last-child td { border-bottom: none; }
+    tr:hover td { background: #f9fafb; }
+    .badge {
+      display: inline-block;
+      padding: 2px 8px;
+      border-radius: 12px;
+      font-size: 11px;
+      font-weight: 600;
+    }
+    .badge-blue { background: #dbeafe; color: #1d4ed8; }
+    .badge-green { background: #d1fae5; color: #065f46; }
+    .badge-yellow { background: #fef3c7; color: #92400e; }
+    .badge-red { background: #fee2e2; color: #991b1b; }
+
+    .orders-input-row { display: flex; gap: 12px; align-items: flex-end; flex-wrap: wrap; margin-bottom: 20px; }
+    .orders-section { background: white; border-radius: 10px; padding: 20px 24px; box-shadow: 0 1px 3px rgba(0,0,0,0.06); margin-bottom: 16px; }
+    .orders-section h3 { font-size: 13px; font-weight: 700; color: #374151; margin-bottom: 12px; text-transform: uppercase; letter-spacing: 0.3px; }
+    .orders-section p { font-size: 13px; color: #6b7280; margin-bottom: 14px; }
+    #orders-table-input table { min-width: 500px; }
+    #orders-table-input td input {
+      width: 100%;
+      padding: 6px 10px;
+      border: 1.5px solid #e5e7eb;
+      border-radius: 5px;
+      font-size: 13px;
+      font-family: inherit;
+    }
+    #orders-table-input td input:focus { outline: none; border-color: #4f9cf9; }
+    .btn-calc { background: #10b981; color: white; border: none; padding: 8px 18px; border-radius: 6px; font-size: 13px; font-weight: 600; cursor: pointer; margin-top: 12px; }
+    .btn-calc:hover { background: #059669; }
+
+    .empty-state { text-align: center; padding: 60px 20px; color: #9ca3af; }
+    .empty-state .icon { font-size: 48px; margin-bottom: 12px; }
+    .empty-state p { font-size: 15px; }
+
+    @media (max-width: 900px) {
+      .kpi-row { grid-template-columns: repeat(2, 1fr); }
+      .charts-row { grid-template-columns: 1fr; }
+      .config-bar { padding: 12px 16px; }
+      .container { padding: 0 12px 40px; }
+    }
+  </style>
+</head>
+<body>
+
+<div class="header">
+  <div class="logo">ATX</div>
+  <div class="header-div"></div>
+  <h1>Error Trend Analysis</h1>
+  <div class="date-badge" id="run-date">Not yet run</div>
+</div>
+
+<div class="config-bar">
+  <label>API Token</label>
+  <input type="text" id="token-input" placeholder="pk_xxxxxxxxxxxxxxxxxxxxxxxx" autocomplete="off">
+  <div class="config-sep"></div>
+  <label>Weeks to Show</label>
+  <select id="weeks-select">
+    <option value="8">8 weeks</option>
+    <option value="12" selected>12 weeks</option>
+    <option value="26">26 weeks</option>
+    <option value="52">52 weeks</option>
+  </select>
+  <div class="config-sep"></div>
+  <button class="btn-run" id="run-btn" onclick="runAnalysis()">▶ Run Analysis</button>
+</div>
+
+<div class="container">
+
+  <div class="status-bar" id="status-bar"></div>
+
+  <div id="dashboard" style="display:none">
+
+    <!-- KPI row -->
+    <div class="kpi-row" id="kpi-row"></div>
+
+    <!-- Charts -->
+    <div class="charts-row">
+      <div class="chart-card">
+        <h3>Weekly Error Count</h3>
+        <canvas id="trend-chart" height="220"></canvas>
+      </div>
+      <div class="chart-card">
+        <h3>Error Rate % (after order entry)</h3>
+        <canvas id="rate-chart" height="220"></canvas>
+      </div>
+    </div>
+
+    <!-- Status breakdown -->
+    <div class="charts-row">
+      <div class="chart-card">
+        <h3>Status Breakdown</h3>
+        <canvas id="status-chart" height="220"></canvas>
+      </div>
+      <div class="chart-card">
+        <h3>Errors by Week — Last 4 Weeks vs Prior 4</h3>
+        <canvas id="compare-chart" height="220"></canvas>
+      </div>
+    </div>
+
+    <!-- Weekly table -->
+    <div class="table-card">
+      <h3>Weekly Error Summary</h3>
+      <div style="overflow-x:auto">
+        <table id="weekly-table">
+          <thead><tr><th>Week</th><th>Errors</th><th>New</th><th>CA In Progress</th><th>Resolved</th><th>Complete</th><th>Orders</th><th>Error Rate</th></tr></thead>
+          <tbody id="weekly-tbody"></tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- Orders input section -->
+    <div class="orders-section">
+      <h3>Enter Weekly Order Counts</h3>
+      <p>Enter your total orders per week to calculate error rates. Data is not saved — you'll re-enter weekly when running the analysis.</p>
+      <div id="orders-table-input"></div>
+      <button class="btn-calc" onclick="calculateRates()">Calculate Error Rates</button>
+    </div>
+
+    <!-- Recent errors table -->
+    <div class="table-card">
+      <h3>Recent Errors — Last 30 Days</h3>
+      <div style="overflow-x:auto">
+        <table>
+          <thead><tr><th>Task / Order #</th><th>Status</th><th>Created</th><th>Link</th></tr></thead>
+          <tbody id="recent-tbody"></tbody>
+        </table>
+      </div>
+    </div>
+
+  </div>
+
+  <div class="empty-state" id="empty-state">
+    <div class="icon">📊</div>
+    <p>Enter your ClickUp API token and click <strong>Run Analysis</strong> to load your error trends.</p>
+    <p style="font-size:12px; margin-top:8px;">Get your token at <strong>ClickUp → Settings → Apps → API Token</strong></p>
+  </div>
+
+</div>
+
+<script>
+// ── Config ───────────────────────────────────────────────────────────────────
+const LIST_ID = '901705320376'; // Error Tracking Form list
+let weeklyData = [];
+let allTasks = [];
+let trendChartInst, rateChartInst, statusChartInst, compareChartInst;
+
+// ── Helpers ──────────────────────────────────────────────────────────────────
+function getWeekStart(d) {
+  const date = new Date(d);
+  const day = date.getDay();
+  const diff = date.getDate() - day + (day === 0 ? -6 : 1); // Mon
+  date.setDate(diff);
+  date.setHours(0, 0, 0, 0);
+  return date;
+}
+function fmtWeek(d) {
+  return d.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
+}
+function setStatus(msg, type = '') {
+  const el = document.getElementById('status-bar');
+  el.textContent = msg;
+  el.className = 'status-bar ' + type;
+  el.style.display = msg ? 'block' : 'none';
+}
+
+// ── Fetch all tasks (paginated) ──────────────────────────────────────────────
+async function fetchAllTasks(token) {
+  let tasks = [];
+  let page = 0;
+  while (true) {
+    const url = `https://api.clickup.com/api/v2/list/${LIST_ID}/task?include_closed=true&subtasks=false&page=${page}&order_by=created&reverse=true`;
+    const resp = await fetch(url, { headers: { Authorization: token } });
+    if (!resp.ok) {
+      const err = await resp.json().catch(() => ({}));
+      throw new Error(err.err || `HTTP ${resp.status}`);
+    }
+    const data = await resp.json();
+    if (!data.tasks || data.tasks.length === 0) break;
+    tasks = tasks.concat(data.tasks);
+    if (data.tasks.length < 100) break;
+    page++;
+  }
+  return tasks;
+}
+
+// ── Main analysis ─────────────────────────────────────────────────────────────
+async function runAnalysis() {
+  const token = document.getElementById('token-input').value.trim();
+  if (!token) { setStatus('Please enter your ClickUp API token.', 'error'); return; }
+
+  const weeksBack = parseInt(document.getElementById('weeks-select').value);
+  document.getElementById('run-btn').disabled = true;
+  document.getElementById('empty-state').style.display = 'none';
+  document.getElementById('dashboard').style.display = 'none';
+  setStatus('⏳ Fetching error tasks from ClickUp...', 'loading');
+
+  try {
+    allTasks = await fetchAllTasks(token);
+    setStatus(`✅ Loaded ${allTasks.length} tasks. Building analysis...`, 'loading');
+
+    // ── Build weekly buckets ─────────────────────────────────────────────────
+    const now = new Date();
+    const cutoff = new Date(now);
+    cutoff.setDate(cutoff.getDate() - weeksBack * 7);
+
+    // Generate week starts
+    const weeks = [];
+    let ws = getWeekStart(cutoff);
+    while (ws <= now) {
+      weeks.push(new Date(ws));
+      ws = new Date(ws);
+      ws.setDate(ws.getDate() + 7);
+    }
+
+    // Assign tasks to weeks
+    const buckets = {};
+    weeks.forEach(w => buckets[w.getTime()] = { date: w, tasks: [] });
+
+    // Status counters
+    const statusCounts = {};
+
+    allTasks.forEach(t => {
+      const created = new Date(parseInt(t.date_created));
+      const wk = getWeekStart(created);
+      if (wk >= cutoff && buckets[wk.getTime()]) {
+        buckets[wk.getTime()].tasks.push(t);
+      }
+      const st = t.status?.status || 'unknown';
+      statusCounts[st] = (statusCounts[st] || 0) + 1;
+    });
+
+    weeklyData = weeks.map(w => {
+      const b = buckets[w.getTime()];
+      const tasks = b ? b.tasks : [];
+      return {
+        weekStart: w,
+        label: fmtWeek(w),
+        total: tasks.length,
+        new: tasks.filter(t => t.status?.status === 'new error reported').length,
+        caIp: tasks.filter(t => t.status?.status === 'corrective action ip').length,
+        resolved: tasks.filter(t => t.status?.status === 'resolved').length,
+        complete: tasks.filter(t => t.status?.status === 'complete').length,
+        validated: tasks.filter(t => t.status?.status === 'data validated').length,
+        orders: null,
+        rate: null,
+      };
+    });
+
+    // ── KPIs ─────────────────────────────────────────────────────────────────
+    const totalErrors = weeklyData.reduce((s, w) => s + w.total, 0);
+    const last4 = weeklyData.slice(-4).reduce((s, w) => s + w.total, 0);
+    const prev4 = weeklyData.slice(-8, -4).reduce((s, w) => s + w.total, 0);
+    const trend = prev4 === 0 ? 0 : Math.round(((last4 - prev4) / prev4) * 100);
+    const avgPerWeek = Math.round(totalErrors / weeksBack * 10) / 10;
+    const caOpen = allTasks.filter(t => t.status?.status === 'corrective action ip').length;
+    const newOpen = allTasks.filter(t => t.status?.status === 'new error reported').length;
+
+    document.getElementById('kpi-row').innerHTML = `
+      <div class="kpi highlight"><div class="kpi-label">Total Errors (${weeksBack}wk)</div><div class="kpi-val">${totalErrors}</div><div class="kpi-sub">${weeksBack} weeks</div></div>
+      <div class="kpi"><div class="kpi-label">Avg / Week</div><div class="kpi-val">${avgPerWeek}</div><div class="kpi-sub">errors per week</div></div>
+      <div class="kpi ${trend > 10 ? 'danger' : trend < -10 ? 'good' : 'warn'}"><div class="kpi-label">4-Week Trend</div><div class="kpi-val">${trend > 0 ? '+' : ''}${trend}%</div><div class="kpi-sub">vs prior 4 weeks</div></div>
+      <div class="kpi ${newOpen > 20 ? 'danger' : 'warn'}"><div class="kpi-label">New / Unreviewed</div><div class="kpi-val">${newOpen}</div><div class="kpi-sub">need review</div></div>
+      <div class="kpi ${caOpen > 10 ? 'danger' : 'warn'}"><div class="kpi-label">CA In Progress</div><div class="kpi-val">${caOpen}</div><div class="kpi-sub">open corrective actions</div></div>
+    `;
+
+    // ── Trend chart ───────────────────────────────────────────────────────────
+    if (trendChartInst) trendChartInst.destroy();
+    const tCtx = document.getElementById('trend-chart').getContext('2d');
+    trendChartInst = new Chart(tCtx, {
+      type: 'bar',
+      data: {
+        labels: weeklyData.map(w => w.label),
+        datasets: [
+          { label: 'New', data: weeklyData.map(w => w.new), backgroundColor: '#93c5fd', stack: 'a' },
+          { label: 'CA In Progress', data: weeklyData.map(w => w.caIp), backgroundColor: '#fbbf24', stack: 'a' },
+          { label: 'Validated/Resolved', data: weeklyData.map(w => w.validated + w.resolved), backgroundColor: '#6ee7b7', stack: 'a' },
+          { label: 'Complete', data: weeklyData.map(w => w.complete), backgroundColor: '#4f9cf9', stack: 'a' },
+        ]
+      },
+      options: {
+        responsive: true,
+        plugins: { legend: { position: 'bottom', labels: { font: { size: 11 } } } },
+        scales: {
+          x: { stacked: true, ticks: { font: { size: 10 } } },
+          y: { stacked: true, beginAtZero: true, ticks: { stepSize: 1 } }
+        }
+      }
+    });
+
+    // ── Rate chart (blank until orders entered) ───────────────────────────────
+    renderRateChart();
+
+    // ── Status donut ─────────────────────────────────────────────────────────
+    if (statusChartInst) statusChartInst.destroy();
+    const sCtx = document.getElementById('status-chart').getContext('2d');
+    const sLabels = Object.keys(statusCounts);
+    const sColors = ['#4f9cf9','#fbbf24','#6ee7b7','#f87171','#a78bfa','#94a3b8'];
+    statusChartInst = new Chart(sCtx, {
+      type: 'doughnut',
+      data: {
+        labels: sLabels,
+        datasets: [{ data: sLabels.map(l => statusCounts[l]), backgroundColor: sColors.slice(0, sLabels.length) }]
+      },
+      options: { responsive: true, plugins: { legend: { position: 'right', labels: { font: { size: 11 } } } } }
+    });
+
+    // ── 4-week vs prior 4 bar ─────────────────────────────────────────────────
+    if (compareChartInst) compareChartInst.destroy();
+    const cCtx = document.getElementById('compare-chart').getContext('2d');
+    const last4weeks = weeklyData.slice(-4);
+    const prior4weeks = weeklyData.slice(-8, -4);
+    compareChartInst = new Chart(cCtx, {
+      type: 'bar',
+      data: {
+        labels: last4weeks.map((w, i) => `Wk ${i + 1}`),
+        datasets: [
+          { label: 'Last 4 Weeks', data: last4weeks.map(w => w.total), backgroundColor: '#4f9cf9' },
+          { label: 'Prior 4 Weeks', data: prior4weeks.map(w => w.total), backgroundColor: '#e5e7eb' },
+        ]
+      },
+      options: {
+        responsive: true,
+        plugins: { legend: { position: 'bottom', labels: { font: { size: 11 } } } },
+        scales: { y: { beginAtZero: true, ticks: { stepSize: 1 } } }
+      }
+    });
+
+    // ── Weekly table ─────────────────────────────────────────────────────────
+    const tbody = document.getElementById('weekly-tbody');
+    tbody.innerHTML = weeklyData.slice().reverse().map(w => `
+      <tr>
+        <td><strong>${w.label}</strong></td>
+        <td><strong>${w.total}</strong></td>
+        <td>${w.new > 0 ? `<span class="badge badge-red">${w.new}</span>` : '—'}</td>
+        <td>${w.caIp > 0 ? `<span class="badge badge-yellow">${w.caIp}</span>` : '—'}</td>
+        <td>${w.resolved > 0 ? `<span class="badge badge-green">${w.resolved}</span>` : '—'}</td>
+        <td>${w.complete > 0 ? `<span class="badge badge-blue">${w.complete}</span>` : '—'}</td>
+        <td id="ord-cell-${w.weekStart.getTime()}">—</td>
+        <td id="rate-cell-${w.weekStart.getTime()}">—</td>
+      </tr>
+    `).join('');
+
+    // ── Orders input table ────────────────────────────────────────────────────
+    buildOrdersInput();
+
+    // ── Recent errors ─────────────────────────────────────────────────────────
+    const cutoff30 = new Date(); cutoff30.setDate(cutoff30.getDate() - 30);
+    const recent = allTasks
+      .filter(t => new Date(parseInt(t.date_created)) >= cutoff30)
+      .sort((a, b) => parseInt(b.date_created) - parseInt(a.date_created))
+      .slice(0, 50);
+
+    const rTbody = document.getElementById('recent-tbody');
+    rTbody.innerHTML = recent.map(t => {
+      const st = t.status?.status || '—';
+      const created = new Date(parseInt(t.date_created)).toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
+      const badgeCls = st === 'new error reported' ? 'badge-red' : st === 'corrective action ip' ? 'badge-yellow' : st === 'resolved' || st === 'complete' ? 'badge-green' : 'badge-blue';
+      return `<tr>
+        <td><strong>${t.name}</strong></td>
+        <td><span class="badge ${badgeCls}">${st}</span></td>
+        <td>${created}</td>
+        <td><a href="${t.url}" target="_blank" style="color:#4f9cf9;font-size:12px">Open ↗</a></td>
+      </tr>`;
+    }).join('');
+
+    document.getElementById('run-date').textContent = 'Last run: ' + new Date().toLocaleString('en-US', { month: 'short', day: 'numeric', hour: 'numeric', minute: '2-digit' });
+    setStatus('');
+    document.getElementById('dashboard').style.display = 'block';
+
+  } catch (err) {
+    setStatus('❌ Error: ' + err.message + '. Check your API token and try again.', 'error');
+    document.getElementById('empty-state').style.display = 'block';
+  }
+  document.getElementById('run-btn').disabled = false;
+}
+
+// ── Orders input ──────────────────────────────────────────────────────────────
+function buildOrdersInput() {
+  const recent8 = weeklyData.slice(-8).reverse();
+  const container = document.getElementById('orders-table-input');
+  container.innerHTML = `
+    <div style="overflow-x:auto">
+      <table>
+        <thead><tr><th>Week of</th><th>Error Count</th><th>Total Orders That Week</th></tr></thead>
+        <tbody>
+          ${recent8.map(w => `
+            <tr>
+              <td>${w.label}</td>
+              <td>${w.total}</td>
+              <td><input type="number" min="0" placeholder="e.g. 850" id="orders-${w.weekStart.getTime()}" oninput="autoCalcRate(${w.weekStart.getTime()}, ${w.total})"></td>
+            </tr>
+          `).join('')}
+        </tbody>
+      </table>
+    </div>
+  `;
+}
+
+function autoCalcRate(ts, errors) {
+  const orders = parseInt(document.getElementById('orders-' + ts)?.value) || 0;
+  const w = weeklyData.find(x => x.weekStart.getTime() === ts);
+  if (w) {
+    w.orders = orders;
+    w.rate = orders > 0 ? ((errors / orders) * 100).toFixed(2) : null;
+    const ordCell = document.getElementById('ord-cell-' + ts);
+    const rateCell = document.getElementById('rate-cell-' + ts);
+    if (ordCell) ordCell.textContent = orders > 0 ? orders.toLocaleString() : '—';
+    if (rateCell) rateCell.innerHTML = w.rate ? `<strong>${w.rate}%</strong>` : '—';
+  }
+}
+
+function calculateRates() {
+  weeklyData.slice(-8).forEach(w => {
+    const ts = w.weekStart.getTime();
+    const input = document.getElementById('orders-' + ts);
+    if (input) autoCalcRate(ts, w.total);
+  });
+  renderRateChart();
+}
+
+function renderRateChart() {
+  if (rateChartInst) rateChartInst.destroy();
+  const rCtx = document.getElementById('rate-chart').getContext('2d');
+  const withRates = weeklyData.filter(w => w.rate !== null);
+  if (withRates.length === 0) {
+    rateChartInst = new Chart(rCtx, {
+      type: 'line',
+      data: { labels: ['Enter orders below to see rate'], datasets: [{ data: [0], borderColor: '#e5e7eb' }] },
+      options: { responsive: true, plugins: { legend: { display: false } } }
+    });
+    return;
+  }
+  rateChartInst = new Chart(rCtx, {
+    type: 'line',
+    data: {
+      labels: withRates.map(w => w.label),
+      datasets: [{
+        label: 'Error Rate %',
+        data: withRates.map(w => parseFloat(w.rate)),
+        borderColor: '#4f9cf9',
+        backgroundColor: 'rgba(79,156,249,0.1)',
+        tension: 0.3,
+        fill: true,
+        pointBackgroundColor: '#4f9cf9',
+      }]
+    },
+    options: {
+      responsive: true,
+      plugins: { legend: { display: false } },
+      scales: {
+        y: { beginAtZero: true, ticks: { callback: v => v + '%' } }
+      }
+    }
+  });
+}
+</script>
+</body>
+</html>
