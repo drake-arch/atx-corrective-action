@@ -1,716 +1,681 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>ATX Corrective Action Form</title>
-  <style>
-    * { box-sizing: border-box; margin: 0; padding: 0; }
-    body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; background: #f0f2f5; color: #1a1a2e; min-height: 100vh; }
-
-    .header {
-      background: #0f1923;
-      color: white;
-      padding: 18px 40px;
-      display: flex;
-      align-items: center;
-      gap: 16px;
-      box-shadow: 0 2px 8px rgba(0,0,0,0.3);
-    }
-    .header .logo {
-      font-size: 22px;
-      font-weight: 900;
-      color: #4f9cf9;
-      letter-spacing: -0.5px;
-    }
-    .header-divider { width: 1px; height: 28px; background: rgba(255,255,255,0.2); }
-    .header h1 { font-size: 16px; font-weight: 600; color: rgba(255,255,255,0.9); }
-
-    #task-banner { padding: 0 40px; }
-
-    .task-linked {
-      background: #e8f4ff;
-      border-left: 4px solid #4f9cf9;
-      margin-top: 20px;
-      padding: 12px 16px;
-      border-radius: 6px;
-      font-size: 14px;
-      display: flex;
-      align-items: center;
-      gap: 12px;
-    }
-    .task-linked .label {
-      font-size: 11px;
-      font-weight: 700;
-      text-transform: uppercase;
-      letter-spacing: 0.5px;
-      color: #4f9cf9;
-      white-space: nowrap;
-    }
-    .task-linked .name { font-weight: 600; color: #1a1a2e; }
-    .task-linked a { color: #4f9cf9; text-decoration: none; font-size: 13px; margin-left: auto; white-space: nowrap; }
-    .task-linked a:hover { text-decoration: underline; }
-
-    .task-warning {
-      background: #fff8e1;
-      border-left: 4px solid #ffc107;
-      margin-top: 20px;
-      padding: 12px 16px;
-      border-radius: 6px;
-      font-size: 14px;
-      color: #5d4e00;
-    }
-
-    .form-container { max-width: 860px; margin: 24px auto 60px; padding: 0 20px; }
-
-    .alert { padding: 16px 20px; border-radius: 8px; margin-bottom: 20px; font-size: 14px; font-weight: 500; display: none; }
-    .alert-success { background: #d4f5e2; border: 1px solid #a8e6c1; color: #1a5c35; }
-    .alert-error { background: #fde8e8; border: 1px solid #f5c2c2; color: #7a1a1a; }
-
-    .section {
-      background: white;
-      border-radius: 10px;
-      padding: 28px 32px;
-      margin-bottom: 16px;
-      box-shadow: 0 1px 4px rgba(0,0,0,0.07);
-    }
-    .section-header {
-      display: flex;
-      align-items: center;
-      gap: 12px;
-      margin-bottom: 24px;
-      padding-bottom: 14px;
-      border-bottom: 2px solid #f0f2f5;
-    }
-    .section-num {
-      background: #4f9cf9;
-      color: white;
-      font-size: 12px;
-      font-weight: 700;
-      width: 26px;
-      height: 26px;
-      border-radius: 50%;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      flex-shrink: 0;
-    }
-    .section-title { font-size: 14px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.5px; color: #1a1a2e; }
-
-    .row { display: flex; gap: 16px; margin-bottom: 16px; }
-    .row .field { flex: 1; }
-    .row .field.narrow { flex: 0 0 140px; }
-    .row .field.medium { flex: 0 0 200px; }
-
-    .field { margin-bottom: 16px; }
-    .field:last-child { margin-bottom: 0; }
-    .field label {
-      display: block;
-      font-size: 11px;
-      font-weight: 700;
-      color: #6b7280;
-      text-transform: uppercase;
-      letter-spacing: 0.4px;
-      margin-bottom: 6px;
-    }
-    .field label .note { font-weight: 400; color: #9ca3af; text-transform: none; letter-spacing: 0; font-size: 11px; }
-    .field input[type="text"],
-    .field input[type="date"],
-    .field textarea,
-    .field select {
-      width: 100%;
-      padding: 10px 12px;
-      border: 1.5px solid #e5e7eb;
-      border-radius: 7px;
-      font-size: 14px;
-      font-family: inherit;
-      color: #1a1a2e;
-      background: #fafafa;
-      transition: border-color 0.15s, background 0.15s;
-      -webkit-appearance: none;
-    }
-    .field input:focus, .field textarea:focus, .field select:focus {
-      outline: none;
-      border-color: #4f9cf9;
-      background: white;
-      box-shadow: 0 0 0 3px rgba(79,156,249,0.1);
-    }
-    .field textarea { min-height: 90px; resize: vertical; line-height: 1.5; }
-    .field select { background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 12 12'%3E%3Cpath fill='%236b7280' d='M6 8L1 3h10z'/%3E%3C/svg%3E"); background-repeat: no-repeat; background-position: right 12px center; padding-right: 32px; }
-
-    .check-group, .radio-group { display: flex; flex-wrap: wrap; gap: 8px 16px; margin-top: 2px; }
-    .check-item, .radio-item {
-      display: flex;
-      align-items: center;
-      gap: 7px;
-      font-size: 13.5px;
-      color: #374151;
-      cursor: pointer;
-      padding: 5px 10px;
-      border-radius: 6px;
-      border: 1.5px solid #e5e7eb;
-      background: #fafafa;
-      transition: all 0.15s;
-      user-select: none;
-    }
-    .check-item:hover, .radio-item:hover { border-color: #4f9cf9; background: #f0f7ff; }
-    .check-item input, .radio-item input { accent-color: #4f9cf9; width: 15px; height: 15px; cursor: pointer; }
-    .other-input {
-      display: inline-block;
-      width: 140px;
-      padding: 3px 8px;
-      border: 1px solid #d1d5db;
-      border-radius: 5px;
-      font-size: 13px;
-      font-family: inherit;
-      margin-left: 4px;
-    }
-    .other-input:focus { outline: none; border-color: #4f9cf9; }
-
-    /* Action table */
-    .action-table { width: 100%; border-collapse: collapse; margin-top: 8px; border-radius: 8px; overflow: hidden; border: 1.5px solid #e5e7eb; }
-    .action-table th {
-      background: #f8f9fa;
-      font-size: 11px;
-      font-weight: 700;
-      text-transform: uppercase;
-      letter-spacing: 0.4px;
-      color: #6b7280;
-      padding: 10px 12px;
-      text-align: left;
-      border-bottom: 1.5px solid #e5e7eb;
-    }
-    .action-table td { border-bottom: 1px solid #f0f2f5; padding: 0; }
-    .action-table tr:last-child td { border-bottom: none; }
-    .action-table td.num {
-      width: 44px;
-      text-align: center;
-      font-size: 13px;
-      font-weight: 600;
-      color: #9ca3af;
-      background: #fafafa;
-      border-right: 1px solid #f0f2f5;
-    }
-    .action-table td input {
-      width: 100%;
-      padding: 10px 12px;
-      border: none;
-      font-size: 13.5px;
-      font-family: inherit;
-      color: #1a1a2e;
-      background: transparent;
-    }
-    .action-table td input:focus { outline: none; background: #f0f7ff; }
-    .action-table td.owner-col { width: 170px; border-left: 1px solid #f0f2f5; }
-    .action-table td.due-col { width: 160px; border-left: 1px solid #f0f2f5; }
-
-    .two-col { display: grid; grid-template-columns: 1fr 1fr; gap: 24px; margin-top: 20px; }
-
-    .submit-area { display: flex; justify-content: flex-end; margin-top: 24px; gap: 12px; align-items: center; }
-    .submit-note { font-size: 12px; color: #9ca3af; }
-    .btn-submit {
-      background: #4f9cf9;
-      color: white;
-      border: none;
-      padding: 13px 36px;
-      border-radius: 8px;
-      font-size: 15px;
-      font-weight: 600;
-      cursor: pointer;
-      transition: background 0.15s, transform 0.1s;
-      letter-spacing: 0.2px;
-    }
-    .btn-submit:hover { background: #3a87e8; }
-    .btn-submit:active { transform: scale(0.98); }
-    .btn-submit:disabled { background: #b0d4fb; cursor: not-allowed; transform: none; }
-
-    .success-screen {
-      display: none;
-      background: white;
-      border-radius: 10px;
-      padding: 60px 40px;
-      text-align: center;
-      box-shadow: 0 1px 4px rgba(0,0,0,0.07);
-    }
-    .success-screen .icon { font-size: 56px; margin-bottom: 16px; }
-    .success-screen h2 { font-size: 24px; font-weight: 700; color: #1a1a2e; margin-bottom: 8px; }
-    .success-screen p { font-size: 15px; color: #6b7280; margin-bottom: 24px; }
-    .success-screen a {
-      display: inline-block;
-      background: #4f9cf9;
-      color: white;
-      text-decoration: none;
-      padding: 10px 24px;
-      border-radius: 7px;
-      font-size: 14px;
-      font-weight: 600;
-    }
-
-    @media (max-width: 640px) {
-      .header { padding: 14px 20px; }
-      #task-banner { padding: 0 16px; }
-      .form-container { padding: 0 12px; }
-      .section { padding: 20px 16px; }
-      .row { flex-direction: column; gap: 0; }
-      .two-col { grid-template-columns: 1fr; }
-    }
-  </style>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>ATX Corrective Action Form</title>
+<link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --navy: #0D2D53;
+    --navy-light: #1a3d6b;
+    --green: #A3F3C5;
+    --green-dark: #2ecc71;
+    --bg: #f4f6f9;
+    --card: #ffffff;
+    --border: #dde2ea;
+    --text: #1a2233;
+    --muted: #6b7a8f;
+    --danger: #e24b4a;
+    --success: #1D9E75;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    font-family: 'Syne', sans-serif;
+    background: var(--bg);
+    color: var(--text);
+    min-height: 100vh;
+    padding: 0 0 60px;
+  }
+  header {
+    background: var(--navy);
+    padding: 18px 32px;
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    position: sticky;
+    top: 0;
+    z-index: 10;
+  }
+  .logo {
+    font-family: 'IBM Plex Mono', monospace;
+    font-weight: 500;
+    font-size: 18px;
+    color: var(--green);
+    letter-spacing: 2px;
+  }
+  .header-title {
+    color: rgba(255,255,255,0.6);
+    font-size: 13px;
+    letter-spacing: 1px;
+    text-transform: uppercase;
+    margin-top: 2px;
+  }
+  .container {
+    max-width: 860px;
+    margin: 0 auto;
+    padding: 36px 20px;
+  }
+  .sheet-url-bar {
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 16px 20px;
+    margin-bottom: 28px;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+  }
+  .sheet-url-bar label {
+    font-size: 12px;
+    font-weight: 600;
+    color: var(--navy);
+    text-transform: uppercase;
+    letter-spacing: 0.8px;
+    white-space: nowrap;
+  }
+  .sheet-url-bar input {
+    flex: 1;
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    padding: 8px 12px;
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 12px;
+    color: var(--text);
+    background: var(--bg);
+  }
+  .sheet-url-bar input:focus { outline: 2px solid var(--green); border-color: transparent; }
+  .save-btn-sm {
+    background: var(--navy);
+    color: var(--green);
+    border: none;
+    border-radius: 6px;
+    padding: 8px 16px;
+    font-family: 'Syne', sans-serif;
+    font-size: 12px;
+    font-weight: 600;
+    cursor: pointer;
+    white-space: nowrap;
+  }
+  .save-btn-sm:hover { background: var(--navy-light); }
+  .section {
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    margin-bottom: 24px;
+    overflow: hidden;
+  }
+  .section-header {
+    background: var(--navy);
+    padding: 14px 24px;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+  }
+  .section-num {
+    background: var(--green);
+    color: var(--navy);
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 11px;
+    font-weight: 500;
+    width: 24px;
+    height: 24px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+  .section-title {
+    color: #fff;
+    font-size: 14px;
+    font-weight: 600;
+    letter-spacing: 0.5px;
+    text-transform: uppercase;
+  }
+  .section-body {
+    padding: 24px;
+  }
+  .row {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 16px;
+    margin-bottom: 16px;
+  }
+  .row.three { grid-template-columns: 1fr 1fr 1fr; }
+  .row.full { grid-template-columns: 1fr; }
+  .field { display: flex; flex-direction: column; gap: 6px; }
+  .field label {
+    font-size: 11px;
+    font-weight: 600;
+    color: var(--muted);
+    text-transform: uppercase;
+    letter-spacing: 0.8px;
+  }
+  .field label span.req { color: var(--danger); }
+  .field input, .field select, .field textarea {
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 10px 12px;
+    font-family: 'Syne', sans-serif;
+    font-size: 14px;
+    color: var(--text);
+    background: #fff;
+    transition: border-color 0.15s;
+  }
+  .field input:focus, .field select:focus, .field textarea:focus {
+    outline: none;
+    border-color: var(--navy);
+    box-shadow: 0 0 0 3px rgba(13,45,83,0.08);
+  }
+  .field textarea { min-height: 90px; resize: vertical; line-height: 1.5; }
+  .checkbox-group {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    margin-top: 2px;
+  }
+  .check-item {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    background: var(--bg);
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    padding: 6px 12px;
+    cursor: pointer;
+    font-size: 13px;
+    transition: all 0.15s;
+    user-select: none;
+  }
+  .check-item:hover { border-color: var(--navy); background: #eef1f7; }
+  .check-item input[type="checkbox"] { accent-color: var(--navy); width: 14px; height: 14px; }
+  .check-item input[type="radio"] { accent-color: var(--navy); width: 14px; height: 14px; }
+  .other-input {
+    display: none;
+    margin-top: 8px;
+    width: 100%;
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 8px 12px;
+    font-family: 'Syne', sans-serif;
+    font-size: 13px;
+  }
+  .other-input.show { display: block; }
+  .action-table { width: 100%; border-collapse: collapse; }
+  .action-table th {
+    background: var(--bg);
+    font-size: 11px;
+    font-weight: 600;
+    color: var(--muted);
+    text-transform: uppercase;
+    letter-spacing: 0.8px;
+    padding: 10px 12px;
+    text-align: left;
+    border-bottom: 1px solid var(--border);
+  }
+  .action-table td { padding: 8px 6px; border-bottom: 1px solid var(--border); vertical-align: middle; }
+  .action-table td:first-child {
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 12px;
+    color: var(--muted);
+    width: 32px;
+    text-align: center;
+  }
+  .action-table input {
+    width: 100%;
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    padding: 8px 10px;
+    font-family: 'Syne', sans-serif;
+    font-size: 13px;
+    color: var(--text);
+  }
+  .action-table input:focus { outline: none; border-color: var(--navy); }
+  .radio-group { display: flex; gap: 10px; }
+  .radio-item {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    padding: 8px 14px;
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    cursor: pointer;
+    font-size: 13px;
+    background: var(--bg);
+    transition: all 0.15s;
+  }
+  .radio-item:hover { border-color: var(--navy); background: #eef1f7; }
+  .radio-item input { accent-color: var(--navy); }
+  .ack-section {
+    background: #f8f9fb;
+    border-top: 1px solid var(--border);
+    padding: 24px;
+  }
+  .submit-bar {
+    padding: 24px;
+    border-top: 1px solid var(--border);
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 16px;
+  }
+  .submit-note {
+    font-size: 12px;
+    color: var(--muted);
+    line-height: 1.5;
+  }
+  .submit-btn {
+    background: var(--navy);
+    color: var(--green);
+    border: none;
+    border-radius: 8px;
+    padding: 14px 32px;
+    font-family: 'Syne', sans-serif;
+    font-size: 14px;
+    font-weight: 700;
+    letter-spacing: 0.5px;
+    cursor: pointer;
+    transition: background 0.15s;
+    white-space: nowrap;
+  }
+  .submit-btn:hover { background: var(--navy-light); }
+  .submit-btn:disabled { opacity: 0.5; cursor: not-allowed; }
+  .toast {
+    position: fixed;
+    bottom: 32px;
+    right: 32px;
+    padding: 14px 22px;
+    border-radius: 10px;
+    font-size: 14px;
+    font-weight: 600;
+    display: none;
+    z-index: 999;
+    box-shadow: 0 4px 20px rgba(0,0,0,0.15);
+  }
+  .toast.success { background: var(--success); color: #fff; display: flex; align-items: center; gap: 8px; }
+  .toast.error { background: var(--danger); color: #fff; display: flex; align-items: center; gap: 8px; }
+  .success-banner {
+    display: none;
+    background: #e8f9f2;
+    border: 1px solid #9fe1cb;
+    border-radius: 10px;
+    padding: 20px 24px;
+    margin-bottom: 28px;
+    text-align: center;
+  }
+  .success-banner.show { display: block; }
+  .success-banner h3 { color: var(--success); font-size: 16px; margin-bottom: 6px; }
+  .success-banner p { color: #2a7a5a; font-size: 13px; }
+  .divider { height: 1px; background: var(--border); margin: 20px 0; }
+  @media (max-width: 600px) {
+    .row { grid-template-columns: 1fr; }
+    .row.three { grid-template-columns: 1fr; }
+    .submit-bar { flex-direction: column; }
+    .container { padding: 20px 12px; }
+  }
+</style>
 </head>
 <body>
 
-  <div class="header">
+<header>
+  <div>
     <div class="logo">ATX</div>
-    <div class="header-divider"></div>
-    <h1>Corrective Action Form</h1>
-    <div style="margin-left:auto;">
-      <button onclick="openTokenModal()" style="background:rgba(255,255,255,0.1);border:1px solid rgba(255,255,255,0.2);color:rgba(255,255,255,0.7);padding:5px 12px;border-radius:5px;font-size:12px;cursor:pointer;">⚙ API Token</button>
-    </div>
+    <div class="header-title">Corrective Action Report</div>
+  </div>
+</header>
+
+<div class="container">
+
+
+
+  <div class="success-banner" id="successBanner">
+    <h3>✓ Corrective Action Submitted</h3>
+    <p>This form has been logged to the ATX CAR Google Sheet.</p>
   </div>
 
-  <div id="task-banner"></div>
+  <form id="carForm">
 
-  <div class="form-container">
-    <div id="alert-success" class="alert alert-success"></div>
-    <div id="alert-error" class="alert alert-error"></div>
-
-    <!-- SUCCESS SCREEN -->
-    <div class="success-screen" id="success-screen">
-      <div class="icon">✅</div>
-      <h2>Corrective Action Submitted</h2>
-      <p>This form has been saved as a comment on the linked ClickUp error task.</p>
-      <a id="clickup-link" href="#" target="_blank">View Task in ClickUp ↗</a>
-    </div>
-
-    <!-- FORM -->
-    <form id="ca-form">
-
-      <!-- ── SECTION 1 ───────────────────────────────────────── -->
-      <div class="section">
-        <div class="section-header">
-          <div class="section-num">1</div>
-          <div class="section-title">Error Details</div>
-        </div>
-
-        <div class="row">
-          <div class="field narrow">
-            <label>Date</label>
-            <input type="date" id="f-date" required>
+    <!-- Section 1: Error Details -->
+    <div class="section">
+      <div class="section-header">
+        <div class="section-num">1</div>
+        <div class="section-title">Error Details</div>
+      </div>
+      <div class="section-body">
+        <div class="row three">
+          <div class="field">
+            <label>Date <span class="req">*</span></label>
+            <input type="date" id="errorDate" required />
           </div>
-          <div class="field narrow">
-            <label>Facility</label>
-            <select id="f-facility" required>
+          <div class="field">
+            <label>Facility <span class="req">*</span></label>
+            <select id="facility" required>
               <option value="">Select...</option>
-              <option value="MKE">MKE</option>
-              <option value="SLC">SLC</option>
-              <option value="BAL">BAL</option>
+              <option>MKE</option>
+              <option>SLC</option>
+              <option>BAL</option>
             </select>
           </div>
-          <div class="field narrow">
+          <div class="field">
             <label>Shift</label>
-            <select id="f-shift" required>
+            <select id="shift">
               <option value="">Select...</option>
-              <option value="AM">AM</option>
-              <option value="PM">PM</option>
+              <option>AM</option>
+              <option>PM</option>
             </select>
           </div>
         </div>
-
         <div class="row">
           <div class="field">
-            <label>Reported By</label>
-            <input type="text" id="f-reported-by" placeholder="Your name" required>
+            <label>Reported By <span class="req">*</span></label>
+            <input type="text" id="reportedBy" placeholder="Name" required />
           </div>
           <div class="field">
-            <label>Department</label>
-            <select id="f-dept" required>
+            <label>Department <span class="req">*</span></label>
+            <select id="department" required>
               <option value="">Select...</option>
-              <option value="Inbound">Inbound</option>
-              <option value="Outbound">Outbound</option>
-              <option value="Kitting">Kitting</option>
-              <option value="Inventory">Inventory</option>
-              <option value="B2B">B2B</option>
-              <option value="Returns">Returns</option>
+              <option>Inbound</option>
+              <option>Outbound</option>
+              <option>Kitting</option>
+              <option>Inventory</option>
+              <option>B2B</option>
+              <option>Returns</option>
             </select>
           </div>
         </div>
-
         <div class="row">
           <div class="field">
-            <label>Employee Who Caused Error <span class="note">— leave blank if unknown at time of filing</span></label>
-            <input type="text" id="f-employee" placeholder="Name (optional)">
+            <label>Employee Who Caused Error</label>
+            <input type="text" id="employee" placeholder="Leave blank if unknown" />
           </div>
           <div class="field">
             <label>Client</label>
-            <input type="text" id="f-client" placeholder="Client name" required>
+            <input type="text" id="client" placeholder="Client name" />
           </div>
         </div>
-
         <div class="row">
           <div class="field">
             <label>Order #</label>
-            <input type="text" id="f-order" placeholder="Order number">
+            <input type="text" id="orderNum" placeholder="Order number" />
           </div>
           <div class="field">
             <label>SKU / Item</label>
-            <input type="text" id="f-sku" placeholder="SKU or item description">
+            <input type="text" id="sku" placeholder="SKU or item description" />
           </div>
         </div>
+
+        <div class="divider"></div>
 
         <div class="field">
-          <label>Error Type</label>
-          <div class="check-group">
-            <label class="check-item"><input type="checkbox" name="error-type" value="Mispick"> Mispick</label>
-            <label class="check-item"><input type="checkbox" name="error-type" value="Wrong Item"> Wrong Item</label>
-            <label class="check-item"><input type="checkbox" name="error-type" value="Packout Error"> Packout Error</label>
-            <label class="check-item"><input type="checkbox" name="error-type" value="Wrong Qty"> Wrong Qty</label>
-            <label class="check-item"><input type="checkbox" name="error-type" value="Wrong Label"> Wrong Label</label>
-            <label class="check-item"><input type="checkbox" name="error-type" value="Damaged Goods"> Damaged Goods</label>
-            <label class="check-item"><input type="checkbox" name="error-type" value="LOT / FEFO"> LOT / FEFO</label>
-            <label class="check-item"><input type="checkbox" name="error-type" value="Receiving Error"> Receiving Error</label>
-            <label class="check-item"><input type="checkbox" name="error-type" value="Inventory Count"> Inventory Count</label>
-            <label class="check-item"><input type="checkbox" name="error-type" value="Kit Build Error"> Kit Build Error</label>
-            <label class="check-item"><input type="checkbox" name="error-type" value="Carrier / Shipping"> Carrier / Shipping</label>
-            <label class="check-item"><input type="checkbox" name="error-type" value="Other"> Other: <input class="other-input" type="text" id="f-error-type-other" placeholder="specify"></label>
+          <label>Error Type <span class="req">*</span></label>
+          <div class="checkbox-group" id="errorTypeGroup">
+            <label class="check-item"><input type="checkbox" name="errorType" value="Mispick - Wrong Item"> Mispick / Wrong Item</label>
+            <label class="check-item"><input type="checkbox" name="errorType" value="Packout Error"> Packout Error</label>
+            <label class="check-item"><input type="checkbox" name="errorType" value="Wrong Qty"> Wrong Qty</label>
+            <label class="check-item"><input type="checkbox" name="errorType" value="Wrong Label"> Wrong Label</label>
+            <label class="check-item"><input type="checkbox" name="errorType" value="Damaged Goods"> Damaged Goods</label>
+            <label class="check-item"><input type="checkbox" name="errorType" value="LOT / FEFO"> LOT / FEFO</label>
+            <label class="check-item"><input type="checkbox" name="errorType" value="Receiving Error"> Receiving Error</label>
+            <label class="check-item"><input type="checkbox" name="errorType" value="Inventory Count"> Inventory Count</label>
+            <label class="check-item"><input type="checkbox" name="errorType" value="Kit Build Error"> Kit Build Error</label>
+            <label class="check-item"><input type="checkbox" name="errorType" value="Carrier / Shipping"> Carrier / Shipping</label>
+            <label class="check-item"><input type="checkbox" name="errorType" value="Other" id="errorTypeOtherCheck"> Other</label>
           </div>
+          <input type="text" class="other-input" id="errorTypeOther" placeholder="Describe other error type..." />
         </div>
 
-        <div class="field" style="margin-top:16px">
+        <div class="divider"></div>
+
+        <div class="field">
           <label>How Discovered</label>
-          <div class="radio-group">
-            <label class="radio-item"><input type="radio" name="how-discovered" value="Client Report"> Client Report</label>
-            <label class="radio-item"><input type="radio" name="how-discovered" value="Internal Catch"> Internal Catch</label>
-            <label class="radio-item"><input type="radio" name="how-discovered" value="End Customer"> End Customer</label>
-            <label class="radio-item"><input type="radio" name="how-discovered" value="Carrier"> Carrier</label>
-            <label class="radio-item"><input type="radio" name="how-discovered" value="Manager Review"> Manager Review</label>
+          <div class="checkbox-group">
+            <label class="check-item"><input type="checkbox" name="discovered" value="Client Report"> Client Report</label>
+            <label class="check-item"><input type="checkbox" name="discovered" value="Internal Catch"> Internal Catch</label>
+            <label class="check-item"><input type="checkbox" name="discovered" value="End Customer"> End Customer</label>
+            <label class="check-item"><input type="checkbox" name="discovered" value="Carrier"> Carrier</label>
+            <label class="check-item"><input type="checkbox" name="discovered" value="Manager Review"> Manager Review</label>
           </div>
         </div>
 
-        <div class="field" style="margin-top:16px">
-          <label>Description of Error <span class="note">— what happened? what was expected vs. what actually occurred?</span></label>
-          <textarea id="f-error-desc" placeholder="Describe the error in detail..." required></textarea>
+        <div class="divider"></div>
+
+        <div class="row full">
+          <div class="field">
+            <label>Description of Error <span class="req">*</span></label>
+            <textarea id="errorDescription" placeholder="What happened? What was expected vs. what actually occurred?" required></textarea>
+          </div>
         </div>
       </div>
+    </div>
 
-      <!-- ── SECTION 2 ───────────────────────────────────────── -->
-      <div class="section">
-        <div class="section-header">
-          <div class="section-num">2</div>
-          <div class="section-title">Root Cause</div>
-        </div>
-
-        <div class="field">
+    <!-- Section 2: Root Cause -->
+    <div class="section">
+      <div class="section-header">
+        <div class="section-num">2</div>
+        <div class="section-title">Root Cause</div>
+      </div>
+      <div class="section-body">
+        <div class="field" style="margin-bottom: 16px;">
           <label>Root Cause Category</label>
-          <div class="check-group">
-            <label class="check-item"><input type="checkbox" name="root-cause" value="Process / SOP Gap"> Process / SOP Gap</label>
-            <label class="check-item"><input type="checkbox" name="root-cause" value="Training / Knowledge"> Training / Knowledge</label>
-            <label class="check-item"><input type="checkbox" name="root-cause" value="System / WMS"> System / WMS</label>
-            <label class="check-item"><input type="checkbox" name="root-cause" value="Labeling / Slotting"> Labeling / Slotting</label>
-            <label class="check-item"><input type="checkbox" name="root-cause" value="Staffing / Attention"> Staffing / Attention</label>
-            <label class="check-item"><input type="checkbox" name="root-cause" value="Other"> Other: <input class="other-input" type="text" id="f-root-other" placeholder="specify"></label>
+          <div class="checkbox-group">
+            <label class="check-item"><input type="checkbox" name="rootCause" value="Process / SOP Gap"> Process / SOP Gap</label>
+            <label class="check-item"><input type="checkbox" name="rootCause" value="Training / Knowledge"> Training / Knowledge</label>
+            <label class="check-item"><input type="checkbox" name="rootCause" value="System / WMS"> System / WMS</label>
+            <label class="check-item"><input type="checkbox" name="rootCause" value="Labeling / Slotting"> Labeling / Slotting</label>
+            <label class="check-item"><input type="checkbox" name="rootCause" value="Staffing / Attention"> Staffing / Attention</label>
+            <label class="check-item"><input type="checkbox" name="rootCause" value="Other" id="rootCauseOtherCheck"> Other</label>
+          </div>
+          <input type="text" class="other-input" id="rootCauseOther" placeholder="Describe other root cause..." />
+        </div>
+        <div class="row full">
+          <div class="field">
+            <label>Root Cause Explanation</label>
+            <textarea id="rootCauseExplanation" placeholder="Explain in plain language why this error occurred..."></textarea>
           </div>
         </div>
-
-        <div class="field" style="margin-top:16px">
-          <label>Root Cause Explanation <span class="note">— explain in plain language why this error occurred</span></label>
-          <textarea id="f-root-exp" placeholder="Explain the root cause..." required></textarea>
-        </div>
       </div>
+    </div>
 
-      <!-- ── SECTION 3 ───────────────────────────────────────── -->
-      <div class="section">
-        <div class="section-header">
-          <div class="section-num">3</div>
-          <div class="section-title">Corrective Actions</div>
-        </div>
-        <p style="font-size:13px;color:#6b7280;margin-bottom:14px">List all actions to fix the issue and prevent it from happening again.</p>
-
+    <!-- Section 3: Corrective Actions -->
+    <div class="section">
+      <div class="section-header">
+        <div class="section-num">3</div>
+        <div class="section-title">Corrective Actions</div>
+      </div>
+      <div class="section-body">
         <table class="action-table">
           <thead>
             <tr>
-              <th style="width:44px">#</th>
+              <th>#</th>
               <th>Action Step</th>
-              <th class="owner-col">Owner</th>
-              <th class="due-col">Due Date / Status</th>
+              <th style="width: 160px;">Owner</th>
+              <th style="width: 160px;">Due Date / Status</th>
             </tr>
           </thead>
-          <tbody id="action-rows">
+          <tbody id="actionRows">
             <tr>
-              <td class="num">1</td>
-              <td><input type="text" data-row="1" data-field="step" placeholder="Describe the action..."></td>
-              <td class="owner-col"><input type="text" data-row="1" data-field="owner" placeholder="Name"></td>
-              <td class="due-col"><input type="text" data-row="1" data-field="due" placeholder="e.g. 04/15 / Open"></td>
+              <td>1</td>
+              <td><input type="text" placeholder="Describe action..." /></td>
+              <td><input type="text" placeholder="Owner" /></td>
+              <td><input type="text" placeholder="Date / Status" /></td>
             </tr>
             <tr>
-              <td class="num">2</td>
-              <td><input type="text" data-row="2" data-field="step" placeholder="Describe the action..."></td>
-              <td class="owner-col"><input type="text" data-row="2" data-field="owner" placeholder="Name"></td>
-              <td class="due-col"><input type="text" data-row="2" data-field="due" placeholder="e.g. 04/15 / Open"></td>
+              <td>2</td>
+              <td><input type="text" placeholder="Describe action..." /></td>
+              <td><input type="text" placeholder="Owner" /></td>
+              <td><input type="text" placeholder="Date / Status" /></td>
             </tr>
             <tr>
-              <td class="num">3</td>
-              <td><input type="text" data-row="3" data-field="step" placeholder="Describe the action..."></td>
-              <td class="owner-col"><input type="text" data-row="3" data-field="owner" placeholder="Name"></td>
-              <td class="due-col"><input type="text" data-row="3" data-field="due" placeholder="e.g. 04/15 / Open"></td>
+              <td>3</td>
+              <td><input type="text" placeholder="Describe action..." /></td>
+              <td><input type="text" placeholder="Owner" /></td>
+              <td><input type="text" placeholder="Date / Status" /></td>
             </tr>
             <tr>
-              <td class="num">4</td>
-              <td><input type="text" data-row="4" data-field="step" placeholder="Describe the action..."></td>
-              <td class="owner-col"><input type="text" data-row="4" data-field="owner" placeholder="Name"></td>
-              <td class="due-col"><input type="text" data-row="4" data-field="due" placeholder="e.g. 04/15 / Open"></td>
+              <td>4</td>
+              <td><input type="text" placeholder="Describe action..." /></td>
+              <td><input type="text" placeholder="Owner" /></td>
+              <td><input type="text" placeholder="Date / Status" /></td>
             </tr>
           </tbody>
         </table>
-
-        <div class="two-col">
+        <div class="divider"></div>
+        <div class="row">
           <div class="field">
             <label>SOP Update Required?</label>
-            <div class="radio-group" style="margin-bottom:10px">
-              <label class="radio-item"><input type="radio" name="sop-update" value="Yes"> Yes</label>
-              <label class="radio-item"><input type="radio" name="sop-update" value="No"> No</label>
+            <div class="radio-group">
+              <label class="radio-item"><input type="radio" name="sopUpdate" value="Yes"> Yes</label>
+              <label class="radio-item"><input type="radio" name="sopUpdate" value="No" checked> No</label>
             </div>
-            <input type="text" id="f-sop-name" placeholder="SOP name (if Yes)">
           </div>
           <div class="field">
             <label>Retraining Required?</label>
             <div class="radio-group">
-              <label class="radio-item"><input type="radio" name="retraining" value="Yes"> Yes</label>
-              <label class="radio-item"><input type="radio" name="retraining" value="No"> No</label>
+              <label class="radio-item"><input type="radio" name="retrain" value="Yes"> Yes</label>
+              <label class="radio-item"><input type="radio" name="retrain" value="No" checked> No</label>
             </div>
           </div>
         </div>
       </div>
+    </div>
 
-      <!-- ── SECTION 4 ───────────────────────────────────────── -->
-      <div class="section">
-        <div class="section-header">
-          <div class="section-num">4</div>
-          <div class="section-title">Acknowledgment</div>
-        </div>
-        <p style="font-size:13px;color:#6b7280;margin-bottom:18px">All parties acknowledge the error has been reviewed and corrective actions are understood.</p>
-
+    <!-- Section 4: Acknowledgment -->
+    <div class="section">
+      <div class="section-header">
+        <div class="section-num">4</div>
+        <div class="section-title">Acknowledgment</div>
+      </div>
+      <div class="ack-section">
         <div class="row">
           <div class="field">
             <label>Employee Name (Print)</label>
-            <input type="text" id="f-emp-name" placeholder="Print name">
+            <input type="text" id="empName" placeholder="Full name" />
           </div>
           <div class="field">
-            <label>Department Manager (Print) <span class="note">— required</span></label>
-            <input type="text" id="f-mgr-name" placeholder="Print name" required>
+            <label>Department Manager (Print) <span class="req">*</span></label>
+            <input type="text" id="managerName" placeholder="Full name" required />
           </div>
         </div>
         <div class="row">
-          <div class="field medium">
+          <div class="field">
             <label>Acknowledgment Date</label>
-            <input type="date" id="f-ack-date">
+            <input type="date" id="ackDate" />
           </div>
           <div class="field">
             <label>Manager Title</label>
-            <input type="text" id="f-mgr-title" placeholder="e.g. Operations Manager">
+            <input type="text" id="managerTitle" placeholder="e.g. AM Outbound Lead" />
           </div>
         </div>
       </div>
-
-      <div class="submit-area">
-        <span class="submit-note">This form will be saved as a comment on the linked ClickUp error task.</span>
-        <button type="submit" class="btn-submit" id="submit-btn">Submit Corrective Action →</button>
-      </div>
-
-    </form>
-  </div>
-
-  <!-- Token Setup Modal -->
-  <div id="token-modal" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,0.55);z-index:9999;display:flex;align-items:center;justify-content:center;">
-    <div style="background:white;border-radius:12px;padding:32px 36px;max-width:480px;width:90%;box-shadow:0 20px 60px rgba(0,0,0,0.3);">
-      <div style="font-size:22px;font-weight:700;color:#1a1a2e;margin-bottom:8px;">🔑 One-Time Setup</div>
-      <p style="color:#555;font-size:14px;margin-bottom:20px;line-height:1.6;">Enter your ClickUp Personal API Token to enable form submissions. Your token is saved only in this browser — it's never sent anywhere except directly to ClickUp.</p>
-      <p style="font-size:12px;color:#888;margin-bottom:12px;">Get your token at: <a href="https://app.clickup.com/settings/apps" target="_blank" style="color:#4f9cf9;">app.clickup.com/settings/apps</a> → Apps → API Token</p>
-      <input id="token-input" type="password" placeholder="pk_xxxxxxxxxxxxxxxxxxxxxxxx" style="width:100%;padding:10px 14px;border:1px solid #d0d5dd;border-radius:6px;font-size:14px;margin-bottom:8px;font-family:monospace;" />
-      <div id="token-error" style="color:#c0392b;font-size:12px;margin-bottom:12px;display:none;">Please enter a valid token (starts with pk_)</div>
-      <div style="display:flex;gap:10px;justify-content:flex-end;margin-top:4px;">
-        <button onclick="closeTokenModal()" style="padding:9px 18px;border:1px solid #d0d5dd;background:white;border-radius:6px;font-size:14px;cursor:pointer;color:#555;">Cancel</button>
-        <button onclick="saveToken()" style="padding:9px 20px;background:#4f9cf9;color:white;border:none;border-radius:6px;font-size:14px;font-weight:600;cursor:pointer;">Save & Continue</button>
+      <div class="submit-bar">
+        <div class="submit-note">This form will be logged to the ATX CAR Google Sheet as a new row.</div>
+        <button type="submit" class="submit-btn" id="submitBtn">Submit Corrective Action →</button>
       </div>
     </div>
-  </div>
 
-  <script>
-    // ── API Token via localStorage (never hardcoded) ─────────────
-    const TOKEN_KEY = 'atx_clickup_token';
-    function getToken() { return localStorage.getItem(TOKEN_KEY) || ''; }
-    function openTokenModal() { document.getElementById('token-modal').style.display = 'flex'; document.getElementById('token-input').focus(); }
-    function closeTokenModal() { document.getElementById('token-modal').style.display = 'none'; }
-    function saveToken() {
-      const val = document.getElementById('token-input').value.trim();
-      if (!val || val.length < 8) { document.getElementById('token-error').style.display = 'block'; return; }
-      document.getElementById('token-error').style.display = 'none';
-      localStorage.setItem(TOKEN_KEY, val);
-      closeTokenModal();
-      // If a pending submit was waiting, retry it
-      if (window._pendingSubmit) { window._pendingSubmit(); window._pendingSubmit = null; }
-    }
-    // Allow Enter key in token input
-    document.addEventListener('DOMContentLoaded', () => {
-      document.getElementById('token-input').addEventListener('keydown', e => { if (e.key === 'Enter') saveToken(); });
-    });
+  </form>
+</div>
 
-    // ── Read URL params ─────────────────────────────────────────
-    const params = new URLSearchParams(window.location.search);
-    const taskId   = params.get('task_id');
-    const taskName = params.get('task_name') ? decodeURIComponent(params.get('task_name')) : null;
+<div class="toast" id="toast"></div>
 
-    // ── Task banner ─────────────────────────────────────────────
-    const banner = document.getElementById('task-banner');
-    if (taskId) {
-      banner.innerHTML = `
-        <div class="task-linked">
-          <span class="label">Linked Error</span>
-          <span class="name">${taskName || taskId}</span>
-          <a href="https://app.clickup.com/t/${taskId}" target="_blank">View in ClickUp ↗</a>
-        </div>`;
-      document.getElementById('clickup-link').href = `https://app.clickup.com/t/${taskId}`;
-    } else {
-      banner.innerHTML = `
-        <div class="task-warning">
-          ⚠️ <strong>No error task linked.</strong> Please use the "Fill out corrective action" link from your Slack notification to ensure this form saves to the correct task.
-        </div>`;
-    }
+<script>
+  const TODAY = new Date().toISOString().split('T')[0];
+  document.getElementById('errorDate').value = TODAY;
+  document.getElementById('ackDate').value = TODAY;
 
-    // ── Set default dates ───────────────────────────────────────
-    const today = new Date().toISOString().split('T')[0];
-    document.getElementById('f-date').value = today;
-    document.getElementById('f-ack-date').value = today;
+  const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbwKvsZ-vkW9D7ErswklQ_uiVTV2bWLVeZ0knj4ZKzyIjByHn8m_xbssiF_0mFknLGA45A/exec';
 
-    // ── Form submit ─────────────────────────────────────────────
-    document.getElementById('ca-form').addEventListener('submit', async function(e) {
-      e.preventDefault();
+  document.getElementById('errorTypeOtherCheck').addEventListener('change', function() {
+    document.getElementById('errorTypeOther').classList.toggle('show', this.checked);
+  });
+  document.getElementById('rootCauseOtherCheck').addEventListener('change', function() {
+    document.getElementById('rootCauseOther').classList.toggle('show', this.checked);
+  });
 
-      const btn = document.getElementById('submit-btn');
-      btn.disabled = true;
-      btn.textContent = 'Submitting…';
-      hideAlerts();
+  function getChecked(name) {
+    return [...document.querySelectorAll(`input[name="${name}"]:checked`)].map(i => i.value).join(', ');
+  }
 
-      // Collect checkboxes / radios
-      const errorTypes = [...document.querySelectorAll('input[name="error-type"]:checked')]
-        .map(c => c.value === 'Other' ? `Other: ${document.getElementById('f-error-type-other').value}` : c.value);
+  function getActionRows() {
+    const rows = document.querySelectorAll('#actionRows tr');
+    return [...rows].map((row, i) => {
+      const inputs = row.querySelectorAll('input');
+      return {
+        step: i + 1,
+        action: inputs[0]?.value || '',
+        owner: inputs[1]?.value || '',
+        due: inputs[2]?.value || ''
+      };
+    }).filter(r => r.action.trim());
+  }
 
-      const rootCauses = [...document.querySelectorAll('input[name="root-cause"]:checked')]
-        .map(c => c.value === 'Other' ? `Other: ${document.getElementById('f-root-other').value}` : c.value);
+  function showToast(msg, type) {
+    const t = document.getElementById('toast');
+    t.textContent = msg;
+    t.className = 'toast ' + type;
+    t.style.display = 'flex';
+    setTimeout(() => { t.style.display = 'none'; }, 4000);
+  }
 
-      const howDisc  = document.querySelector('input[name="how-discovered"]:checked')?.value || '—';
-      const sopUpd   = document.querySelector('input[name="sop-update"]:checked')?.value || '—';
-      const retrain  = document.querySelector('input[name="retraining"]:checked')?.value || '—';
+  document.getElementById('carForm').addEventListener('submit', async function(e) {
+    e.preventDefault();
+    const scriptUrl = SCRIPT_URL;
+const errorTypes = getChecked('errorType');
+    const otherError = document.getElementById('errorTypeOther').value;
+    const rootCauses = getChecked('rootCause');
+    const otherRoot = document.getElementById('rootCauseOther').value;
+    const actions = getActionRows();
 
-      // Collect action steps
-      const actionRows = [];
-      for (let i = 1; i <= 4; i++) {
-        const step  = document.querySelector(`input[data-row="${i}"][data-field="step"]`).value.trim();
-        if (!step) continue;
-        const owner = document.querySelector(`input[data-row="${i}"][data-field="owner"]`).value.trim() || 'TBD';
-        const due   = document.querySelector(`input[data-row="${i}"][data-field="due"]`).value.trim()   || 'TBD';
-        actionRows.push(`${i}. ${step} | Owner: ${owner} | Due/Status: ${due}`);
-      }
+    const payload = {
+      timestamp: new Date().toISOString(),
+      errorDate: document.getElementById('errorDate').value,
+      facility: document.getElementById('facility').value,
+      shift: document.getElementById('shift').value,
+      reportedBy: document.getElementById('reportedBy').value,
+      department: document.getElementById('department').value,
+      employee: document.getElementById('employee').value,
+      client: document.getElementById('client').value,
+      orderNum: document.getElementById('orderNum').value,
+      sku: document.getElementById('sku').value,
+      errorType: errorTypes + (otherError ? ' — ' + otherError : ''),
+      discovered: getChecked('discovered'),
+      errorDescription: document.getElementById('errorDescription').value,
+      rootCauseCategory: rootCauses + (otherRoot ? ' — ' + otherRoot : ''),
+      rootCauseExplanation: document.getElementById('rootCauseExplanation').value,
+      actions: actions.map(a => `[${a.step}] ${a.action} | ${a.owner} | ${a.due}`).join('\n'),
+      sopUpdate: document.querySelector('input[name="sopUpdate"]:checked')?.value || '',
+      retrain: document.querySelector('input[name="retrain"]:checked')?.value || '',
+      empName: document.getElementById('empName').value,
+      managerName: document.getElementById('managerName').value,
+      ackDate: document.getElementById('ackDate').value,
+      managerTitle: document.getElementById('managerTitle').value,
+    };
 
-      // Build formatted comment
-      const sopLine = sopUpd === 'Yes'
-        ? `Yes — ${document.getElementById('f-sop-name').value || 'SOP name TBD'}`
-        : sopUpd;
+    const btn = document.getElementById('submitBtn');
+    btn.disabled = true;
+    btn.textContent = 'Submitting...';
 
-      const comment = [
-        `📋 **CORRECTIVE ACTION REPORT**`,
-        ``,
-        `━━━━━━━━━━━━━━━━━━━━━━━━`,
-        `**SECTION 1 — ERROR DETAILS**`,
-        `• **Date:** ${document.getElementById('f-date').value}`,
-        `• **Facility:** ${document.getElementById('f-facility').value}`,
-        `• **Shift:** ${document.getElementById('f-shift').value}`,
-        `• **Reported By:** ${document.getElementById('f-reported-by').value}`,
-        `• **Department:** ${document.getElementById('f-dept').value}`,
-        `• **Employee (Caused Error):** ${document.getElementById('f-employee').value || 'Unknown at time of filing'}`,
-        `• **Client:** ${document.getElementById('f-client').value}`,
-        `• **Order #:** ${document.getElementById('f-order').value || 'N/A'}`,
-        `• **SKU / Item:** ${document.getElementById('f-sku').value || 'N/A'}`,
-        `• **Error Type:** ${errorTypes.length ? errorTypes.join(', ') : '—'}`,
-        `• **How Discovered:** ${howDisc}`,
-        ``,
-        `**Description of Error:**`,
-        document.getElementById('f-error-desc').value,
-        ``,
-        `━━━━━━━━━━━━━━━━━━━━━━━━`,
-        `**SECTION 2 — ROOT CAUSE**`,
-        `• **Category:** ${rootCauses.length ? rootCauses.join(', ') : '—'}`,
-        ``,
-        `**Root Cause Explanation:**`,
-        document.getElementById('f-root-exp').value,
-        ``,
-        `━━━━━━━━━━━━━━━━━━━━━━━━`,
-        `**SECTION 3 — CORRECTIVE ACTIONS**`,
-        actionRows.length ? actionRows.join('\n') : 'No action steps entered',
-        ``,
-        `• **SOP Update Required:** ${sopLine}`,
-        `• **Retraining Required:** ${retrain}`,
-        ``,
-        `━━━━━━━━━━━━━━━━━━━━━━━━`,
-        `**SECTION 4 — ACKNOWLEDGMENT**`,
-        `• **Employee (Print):** ${document.getElementById('f-emp-name').value || 'N/A'}`,
-        `• **Department Manager:** ${document.getElementById('f-mgr-name').value}`,
-        `• **Manager Title:** ${document.getElementById('f-mgr-title').value || 'N/A'}`,
-        `• **Date:** ${document.getElementById('f-ack-date').value}`,
-        ``,
-        `_Submitted electronically via ATX Corrective Action Form_`
-      ].join('\n');
+    try {
+      await fetch(scriptUrl, {
+        method: 'POST',
+        mode: 'no-cors',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(payload)
+      });
 
-      if (!taskId) {
-        showError('No ClickUp task linked. Please use the "Fill out corrective action" link from your Slack notification.');
-        btn.disabled = false;
-        btn.textContent = 'Submit Corrective Action →';
-        return;
-      }
-
-      const CLICKUP_API_TOKEN = getToken();
-      if (!CLICKUP_API_TOKEN) {
-        btn.disabled = false;
-        btn.textContent = 'Submit Corrective Action →';
-        // Store the submit action so it retries after token is saved
-        window._pendingSubmit = () => document.getElementById('submit-btn').click();
-        openTokenModal();
-        return;
-      }
-
-      try {
-        const resp = await fetch(`https://api.clickup.com/api/v2/task/${taskId}/comment`, {
-          method: 'POST',
-          headers: {
-            'Authorization': CLICKUP_API_TOKEN,
-            'Content-Type': 'application/json'
-          },
-          body: JSON.stringify({ comment_text: comment })
-        });
-
-        if (resp.ok) {
-          document.getElementById('ca-form').style.display = 'none';
-          document.getElementById('success-screen').style.display = 'block';
-          window.scrollTo({ top: 0, behavior: 'smooth' });
-        } else {
-          const err = await resp.json().catch(() => ({}));
-          throw new Error(err.err || `HTTP ${resp.status}`);
-        }
-      } catch (err) {
-        showError(`Submission failed: ${err.message}. Please contact your Operations Lead or try again.`);
-        btn.disabled = false;
-        btn.textContent = 'Submit Corrective Action →';
-      }
-    });
-
-    function showError(msg) {
-      const el = document.getElementById('alert-error');
-      el.textContent = '❌ ' + msg;
-      el.style.display = 'block';
+      document.getElementById('successBanner').classList.add('show');
+      document.getElementById('carForm').reset();
+      document.getElementById('errorDate').value = TODAY;
+      document.getElementById('ackDate').value = TODAY;
       window.scrollTo({ top: 0, behavior: 'smooth' });
+      showToast('CAR submitted successfully!', 'success');
+    } catch (err) {
+      showToast('Submission failed. Check your script URL.', 'error');
+    } finally {
+      btn.disabled = false;
+      btn.textContent = 'Submit Corrective Action →';
     }
-    function hideAlerts() {
-      document.getElementById('alert-success').style.display = 'none';
-      document.getElementById('alert-error').style.display = 'none';
-    }
-  </script>
+  });
+</script>
 </body>
 </html>
